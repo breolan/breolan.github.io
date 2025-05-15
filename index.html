@@ -4,7 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CUDI - Comunidad de Usuarios para la Defensa Informática</title>
+    <link rel="icon" type="image/png" href="./logo-removebg-preview.png" />
+    <meta
+      name="description"
+      content="CUDI es una comunidad para ayudar a personas sin conocimientos técnicos a proteger su seguridad y privacidad online."
+    />
+    <meta name="author" content="CUDI" />
     <style>
+      :root {
+        --azul: #005baa;
+        --celeste: #009fd9;
+        --azul-oscuro: #003b75;
+        --amarillo: #f9c74f;
+        --gris-fondo: #f2f4f8;
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
@@ -14,43 +28,144 @@
       }
 
       body {
-        background-color: #f2f4f8;
+        background-color: var(--gris-fondo);
         color: #222;
         line-height: 1.6;
       }
 
-      header {
-        background: linear-gradient(to right, #005baa, #009fd9);
+      .site-header {
+        background: linear-gradient(to right, var(--azul), var(--celeste));
         color: white;
-        text-align: center;
-        padding: 40px 20px;
-      }
-
-      header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-      }
-
-      nav {
-        background: #003b75;
-        padding: 15px;
-        display: flex;
-        justify-content: center;
-        gap: 30px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         position: sticky;
         top: 0;
         z-index: 1000;
       }
 
-      nav a {
-        color: #fff;
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .logo img {
+        height: 40px;
+        width: auto;
+      }
+
+      .navbar {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+      }
+
+      .navbar a {
+        color: white;
         text-decoration: none;
-        font-weight: bold;
+        font-weight: 500;
         transition: color 0.3s;
       }
 
-      nav a:hover {
-        color: #f9c74f;
+      .navbar a:hover {
+        color: var(--amarillo);
+      }
+
+      .dropdown {
+        position: relative;
+      }
+
+      .submenu {
+        display: none;
+        position: absolute;
+        background-color: var(--azul-oscuro);
+        border-radius: 8px;
+        top: 100%;
+        left: 0;
+        padding: 10px 0;
+        min-width: 180px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 999;
+      }
+
+      .submenu li {
+        list-style: none;
+      }
+
+      .submenu a {
+        display: block;
+        padding: 10px 20px;
+        color: white;
+        text-decoration: none;
+        transition: background 0.3s;
+      }
+
+      .submenu a:hover {
+        background-color: var(--celeste);
+      }
+
+      .dropdown:hover .submenu {
+        display: block;
+      }
+
+      .menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          display: none;
+          flex-direction: column;
+          background: var(--azul-oscuro);
+          position: absolute;
+          top: 65px;
+          right: 20px;
+          border-radius: 8px;
+          padding: 15px;
+        }
+
+        .navbar.show {
+          display: flex;
+        }
+
+        .menu-toggle {
+          display: block;
+        }
+
+        .dropdown {
+          width: 100%;
+        }
+
+        .submenu {
+          position: static;
+          display: none;
+          background: none;
+          box-shadow: none;
+          padding: 0;
+        }
+
+        .navbar.show .dropdown:hover .submenu {
+          display: block;
+        }
+
+        .submenu a {
+          padding-left: 15px;
+        }
       }
 
       .container {
@@ -66,11 +181,11 @@
       .section-title {
         font-size: 28px;
         margin-bottom: 20px;
-        color: #005baa;
+        color: var(--azul);
       }
 
       .card {
-        border-left: 5px solid #009fd9;
+        border-left: 5px solid var(--celeste);
         padding: 20px;
         border-radius: 10px;
         margin: 15px 0;
@@ -88,7 +203,7 @@
       }
 
       button {
-        background: #005baa;
+        background: var(--azul);
         color: white;
         padding: 10px 20px;
         border: none;
@@ -98,7 +213,7 @@
       }
 
       button:hover {
-        background: #003b75;
+        background: var(--azul-oscuro);
       }
 
       input,
@@ -112,7 +227,7 @@
       }
 
       footer {
-        background: #003b75;
+        background: var(--azul-oscuro);
         color: white;
         text-align: center;
         padding: 20px;
@@ -131,18 +246,38 @@
       }
     </style>
   </head>
-  <body>
-    <header>
-      <h1>CUDI</h1>
-      <p>Comunidad de Usuarios para la Defensa Informática</p>
-    </header>
 
-    <nav>
-      <a href="#inicio">Inicio</a>
-      <a href="#recursos">Recursos</a>
-      <a href="#test">Autoevaluación</a>
-      <a href="#contacto">Contacto</a>
-    </nav>
+  <body>
+    <header class="site-header">
+      <div class="header-container">
+        <div class="logo">
+          <img src="./logo-removebg-preview.png" alt="Logo CUDI" />
+          <span>CUDI</span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <a href="./aboutus.html">Sobre Nosotros</a>
+          <div class="dropdown">
+            <a href="#">Herramientas</a>
+            <ul class="submenu">
+              <li><a href="./genrador.html">Generador de contraseñas</a></li>
+              <li><a href="./verificador.html">Verificador de enlaces</a></li>
+              <li><a href="#">Consultoría</a></li>
+            </ul>
+          </div>
+
+          <a href="#test">Autoevaluación</a>
+          <a href="./colabora.html">Colabora</a>
+          <a
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=breolanapp@gmail.com"
+            target="_blank"
+            >Contacto</a
+          >
+        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+          ☰
+        </button>
+      </div>
+    </header>
 
     <div class="container" id="inicio">
       <h2 class="section-title">¿Qué es CUDI?</h2>
@@ -154,12 +289,76 @@
       </p>
     </div>
 
+    <div class="container" id="top10">
+      <h2 class="section-title">🛡️ TOP 10 peligros para usuarios de la red</h2>
+      <div class="card">
+        <h3>1º Phishing (Correos o mensajes falsos)</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>2º Contraseñas débiles o reutilizadas</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>3º Fraudes en redes sociales y WhatsApp</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>4º Instalación de apps maliciosas</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>5º Falta de actualizaciones</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>6º Enlaces engañosos</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>7º Robo de datos por WiFi públicas</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>8º Exceso de permisos en aplicaciones</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>9º Falsas ofertas o tiendas online</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+      <div class="card">
+        <h3>10º No tener copia de seguridad (backup)</h3>
+        <p>
+          Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+        </p>
+      </div>
+    </div>
     <div class="container" id="recursos">
       <h2 class="section-title">Guías y Consejos</h2>
       <div class="card">
         <h3>🔒 Cómo crear contraseñas seguras</h3>
         <p>
           Aprende técnicas sencillas para crear y recordar contraseñas fuertes.
+          <a href="./safetypass.md">+</a>
         </p>
       </div>
       <div class="card">
@@ -188,22 +387,6 @@
       </button>
     </div>
 
-    <div class="container" id="contacto">
-      <h2 class="section-title">Contáctanos</h2>
-      <form onsubmit="handleForm(event)">
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required />
-
-        <label>Email:</label>
-        <input type="email" name="email" required />
-
-        <label>Mensaje:</label>
-        <textarea name="mensaje" rows="4" required></textarea>
-
-        <button type="submit">Enviar</button>
-      </form>
-    </div>
-
     <footer>
       <p>
         &copy; 2025 CUDI - Comunidad de Usuarios para la Defensa Informática
@@ -211,10 +394,11 @@
     </footer>
 
     <script>
-      function handleForm(event) {
-        event.preventDefault();
-        alert("Gracias por tu mensaje. ¡Nos pondremos en contacto pronto!");
-      }
+      document
+        .getElementById("menu-toggle")
+        .addEventListener("click", function () {
+          document.getElementById("navbar").classList.toggle("show");
+        });
     </script>
   </body>
 </html>
