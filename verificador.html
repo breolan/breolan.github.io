@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CUDI - Verificador de Seguridad de Contraseñas</title>
-    <link rel="icon" type="image/png" href="./logo-removebg-preview.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="./icons/logo-removebg-preview.png"
+    />
     <meta
       name="description"
       content="Verificador de seguridad de contraseñas de CUDI"
@@ -27,10 +31,18 @@
         scroll-behavior: smooth;
       }
 
+      html,
+      body {
+        height: 100%;
+      }
+
       body {
         background-color: var(--gris-fondo);
         color: #222;
         line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
       }
 
       .site-header {
@@ -118,6 +130,7 @@
         border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         animation: fadeIn 0.5s ease-in-out;
+        flex: 1;
       }
 
       .section-title {
@@ -173,7 +186,6 @@
         color: white;
         text-align: center;
         padding: 20px;
-        margin-top: 40px;
       }
 
       @keyframes fadeIn {
@@ -199,27 +211,28 @@
       }
     </style>
   </head>
-  <header class="site-header">
-    <div class="header-container">
-      <div class="logo">
-        <img src="./logo-removebg-preview.png" alt="Logo CUDI" />
-        <span>CUDI</span>
-      </div>
-      <nav class="navbar" id="navbar">
-        <a href="./Wireframe 2.html">Inicio</a>
-        <a href="#nosotros">Sobre Nosotros</a>
-        <a href="#recursos">Recursos</a>
-        <a href="./genrador.html">Herramientas</a>
-        <a href="#test">Autoevaluación</a>
-        <a href="#contacto">Contacto</a>
-      </nav>
-      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
-        ☰
-      </button>
-    </div>
-  </header>
 
   <body>
+    <header class="site-header">
+      <div class="header-container">
+        <div class="logo">
+          <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
+          <span>CUDI</span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <a href="./index.html">Inicio</a>
+          <a href="#nosotros">Sobre Nosotros</a>
+          <a href="#recursos">Recursos</a>
+          <a href="./genrador.html">Herramientas</a>
+          <a href="#test">Autoevaluación</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+          ☰
+        </button>
+      </div>
+    </header>
+
     <div class="container">
       <h2 class="section-title">🔐 Verificador de Seguridad de Contraseñas</h2>
 
@@ -253,27 +266,25 @@
 
         let strength = 0;
 
-        // Reglas simples de fuerza
         if (password.length >= 8) strength++;
         if (/[A-Z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
         if (/[\W_]/.test(password)) strength++;
 
-        // Cambia la barra y texto
         let color, text;
         switch (strength) {
           case 0:
           case 1:
-            color = "#e74c3c"; // rojo
+            color = "#e74c3c";
             text = "Débil";
             break;
           case 2:
           case 3:
-            color = "#f1c40f"; // amarillo
+            color = "#f1c40f";
             text = "Media";
             break;
           case 4:
-            color = "#2ecc71"; // verde
+            color = "#2ecc71";
             text = "Fuerte";
             break;
         }
@@ -282,11 +293,10 @@
         strengthBar.style.backgroundColor = color;
         strengthBar.style.width = `${(strength / 4) * 100}%`;
 
-        // Estimar crackeo (muy aproximado)
         const chars = new Set(password).size;
         const entropy = password.length * Math.log2(chars || 1);
         const guesses = Math.pow(2, entropy);
-        const guessesPerSecond = 1e9; // suposición estándar
+        const guessesPerSecond = 1e9;
         const seconds = guesses / guessesPerSecond;
 
         const timeStr = formatTime(seconds);
@@ -305,6 +315,10 @@
         if (years < 1000) return `${Math.round(years)} años`;
         return "más de 1000 años";
       }
+
+      document.getElementById("menu-toggle").addEventListener("click", () => {
+        document.getElementById("navbar").classList.toggle("show");
+      });
     </script>
   </body>
 </html>
