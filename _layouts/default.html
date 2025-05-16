@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ page.title | default: "CUDI - Comunidad de Usuarios para la Defensa
+      Informática" }}
+    </title>
+    <link rel="icon" type="image/png" href="/icons/logo-removebg-preview.png" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <meta
+      name="description"
+      content="CUDI es una comunidad para ayudar a personas sin conocimientos técnicos a proteger su seguridad y privacidad online."
+    />
+    <meta name="author" content="CUDI" />
+  </head>
+
+  <body>
+    {% include header.html %}
+    <main>{{ content }}</main>
+    {% include footer.html %}
+    <script>
+      document
+        .getElementById("menu-toggle")
+        .addEventListener("click", function () {
+          document.getElementById("navbar").classList.toggle("show");
+        });
+    </script>
+  </body>
+</html>
