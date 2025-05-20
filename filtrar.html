@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CUDI - Verificador de Contraseñas Filtradas</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="./icons/logo-removebg-preview.png"
+    />
+    <meta
+      name="description"
+      content="Comprueba si tu contraseña ha sido filtrada en la web"
+    />
+    <meta name="author" content="CUDI" />
+    <style>
+      :root {
+        --azul: #005baa;
+        --celeste: #009fd9;
+        --azul-oscuro: #003b75;
+        --amarillo: #f9c74f;
+        --gris-fondo: #f2f4f8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background-color: var(--gris-fondo);
+        color: #222;
+        line-height: 1.6;
+      }
+
+      .site-header {
+        background: linear-gradient(to right, var(--azul), var(--celeste));
+        color: white;
+        padding: 15px 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .logo img {
+        height: 40px;
+        width: auto;
+      }
+
+      .navbar {
+        display: flex;
+        gap: 25px;
+      }
+
+      .navbar a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+
+      .navbar a:hover {
+        color: var(--amarillo);
+      }
+
+      .menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          display: none;
+          flex-direction: column;
+          background: var(--azul-oscuro);
+          position: absolute;
+          top: 65px;
+          right: 20px;
+          border-radius: 8px;
+          padding: 15px;
+        }
+
+        .navbar.show {
+          display: flex;
+        }
+
+        .menu-toggle {
+          display: block;
+        }
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 30px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      .section-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: var(--azul);
+      }
+
+      .result-box {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        background: #f2f2f2;
+        font-weight: bold;
+      }
+
+      .result-ok {
+        color: green;
+      }
+
+      .result-bad {
+        color: red;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 16px;
+      }
+
+      button {
+        background: var(--azul);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: var(--azul-oscuro);
+      }
+
+      footer {
+        background: var(--azul-oscuro);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-container">
+        <div class="logo">
+          <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
+          <span>CUDI</span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <a href="./Wireframe 2.html">Inicio</a>
+          <a href="#nosotros">Sobre Nosotros</a>
+          <a href="#recursos">Recursos</a>
+          <a href="./genrador.html">Herramientas</a>
+          <a href="#test">Autoevaluación</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <h2 class="section-title">Verifica si tu contraseña ha sido filtrada</h2>
+      <p>Introduce una contraseña:</p>
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Introduce tu contraseña"
+      />
+      <button onclick="checkPassword()">Comprobar</button>
+
+      <div id="result" class="result-box"></div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; 2025 CUDI - Comunidad de Usuarios para la Defensa Informática
+      </p>
+    </footer>
+
+    <script>
+      document.getElementById("menu-toggle").addEventListener("click", () => {
+        const nav = document.getElementById("navbar");
+        nav.classList.toggle("show");
+      });
+
+      async function checkPassword() {
+        const password = document.getElementById("password").value;
+        const result = document.getElementById("result");
+
+        if (!password) {
+          result.innerText = "Introduce una contraseña para verificar.";
+          result.className = "result-box result-bad";
+          return;
+        }
+
+        const hash = await sha1(password);
+        const prefix = hash.slice(0, 5);
+        const suffix = hash.slice(5);
+
+        const res = await fetch(
+          `https://api.pwnedpasswords.com/range/${prefix}`
+        );
+        const text = await res.text();
+
+        const found = text
+          .split("\n")
+          .some((line) => line.split(":")[0] === suffix);
+
+        result.innerText = found
+          ? "⚠️ Esta contraseña ha aparecido en filtraciones de datos. ¡Cámbiala!"
+          : " Esta contraseña no ha sido encontrada en filtraciones conocidas.";
+
+        result.className = found
+          ? "result-box result-bad"
+          : "result-box result-ok";
+      }
+
+      async function sha1(str) {
+        const buffer = new TextEncoder("utf-8").encode(str);
+        const hashBuffer = await crypto.subtle.digest("SHA-1", buffer);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("")
+          .toUpperCase();
+      }
+    </script>
+  </body>
+</html>
