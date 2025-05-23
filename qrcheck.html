@@ -56,32 +56,30 @@
       const resultContainer = document.getElementById("result");
 
       function onScanSuccess(decodedText, decodedResult) {
-        html5QrcodeScanner.clear();
-
-        resultContainer.innerHTML = `<span style="color: green;">Código QR detectado:</span> <br> ${decodedText}`;
-
-        if (decodedText.startsWith("http")) {
-          resultContainer.innerHTML += `<br><em>Es un enlace detectado. Por favor, verifica manualmente que el sitio sea confiable antes de visitarlo.</em>`;
-        } else {
-          resultContainer.innerHTML += `<br><em>No es un enlace web. Verifica el contenido con precaución.</em>`;
-        }
+        html5QrcodeScanner
+          .clear()
+          .then(() => {
+            resultContainer.innerHTML = `<span style="color: green;">Código QR detectado:</span> <br> ${decodedText}`;
+            if (decodedText.startsWith("http")) {
+              resultContainer.innerHTML += `<br><em>Es un enlace detectado. Por favor, verifica manualmente que el sitio sea confiable antes de visitarlo.</em>`;
+            } else {
+              resultContainer.innerHTML += `<br><em>No es un enlace web. Verifica el contenido con precaución.</em>`;
+            }
+          })
+          .catch((error) => {
+            console.error("Error clearing scanner:", error);
+          });
       }
 
       function onScanFailure(error) {}
 
-      let html5QrcodeScanner = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: 250 },
+        false
+      );
 
-      html5QrcodeScanner
-        .start(
-          { facingMode: "environment" },
-          config,
-          onScanSuccess,
-          onScanFailure
-        )
-        .catch((err) => {
-          resultContainer.innerHTML = `<span style="color: red;">Error al iniciar la cámara: ${err}</span>`;
-        });
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
     </script>
   </body>
 </html>
