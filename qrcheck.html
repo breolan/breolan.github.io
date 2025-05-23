@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CUDI - Verificador de Códigos QR</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="icon" type="image/png" href="./logo-removebg-preview.png" />
+    <meta
+      name="description"
+      content="Escanea y verifica códigos QR para detectar estafas con CUDI"
+    />
+    <meta name="author" content="CUDI" />
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="header-container">
+        <div class="logo">
+          <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
+          <span>CUDI</span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <a href="./index.html">Inicio</a>
+          <a href="#about">Sobre Nosotros</a>
+          <a href="#resources">Recursos</a>
+          <a href="./herramientas.html">Herramientas</a>
+          <a href="#contact">Contacto</a>
+        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <h2 class="section-title">Escáner de Códigos QR</h2>
+      <p>Usa la cámara para escanear un código QR y verifica si es seguro.</p>
+
+      <div
+        id="reader"
+        style="width: 100%; max-width: 500px; margin: 0 auto"
+      ></div>
+
+      <div id="result" style="margin-top: 20px; font-weight: bold"></div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; 2025 CUDI - Comunidad de Usuarios para la Defensa Informática
+      </p>
+    </footer>
+
+    <script>
+      const resultContainer = document.getElementById("result");
+
+      function onScanSuccess(decodedText, decodedResult) {
+        html5QrcodeScanner.clear();
+
+        resultContainer.innerHTML = `<span style="color: green;">Código QR detectado:</span> <br> ${decodedText}`;
+
+        if (decodedText.startsWith("http")) {
+          resultContainer.innerHTML += `<br><em>Es un enlace detectado. Por favor, verifica manualmente que el sitio sea confiable antes de visitarlo.</em>`;
+        } else {
+          resultContainer.innerHTML += `<br><em>No es un enlace web. Verifica el contenido con precaución.</em>`;
+        }
+      }
+
+      function onScanFailure(error) {}
+
+      let html5QrcodeScanner = new Html5Qrcode("reader");
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+      html5QrcodeScanner
+        .start(
+          { facingMode: "environment" },
+          config,
+          onScanSuccess,
+          onScanFailure
+        )
+        .catch((err) => {
+          resultContainer.innerHTML = `<span style="color: red;">Error al iniciar la cámara: ${err}</span>`;
+        });
+    </script>
+  </body>
+</html>
