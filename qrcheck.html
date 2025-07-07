@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CUDI - Verificador de Códigos QR</title>
     <link rel="stylesheet" href="./css/styles.css" />
-    <link rel="icon" type="image/png" href="./logo-removebg-preview.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="./icons/logo-removebg-preview.png"
+    />
     <meta
       name="description"
       content="Escanea y verifica códigos QR para detectar estafas con CUDI"
     />
     <meta name="author" content="CUDI" />
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
   </head>
 
   <body>
@@ -52,34 +55,38 @@
       </p>
     </footer>
 
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+
     <script>
-      const resultContainer = document.getElementById("result");
+      document.addEventListener("DOMContentLoaded", function () {
+        const resultContainer = document.getElementById("result");
 
-      function onScanSuccess(decodedText, decodedResult) {
-        html5QrcodeScanner
-          .clear()
-          .then(() => {
-            resultContainer.innerHTML = `<span style="color: green;">Código QR detectado:</span> <br> ${decodedText}`;
-            if (decodedText.startsWith("http")) {
-              resultContainer.innerHTML += `<br><em>Es un enlace detectado. Por favor, verifica manualmente que el sitio sea confiable antes de visitarlo.</em>`;
-            } else {
-              resultContainer.innerHTML += `<br><em>No es un enlace web. Verifica el contenido con precaución.</em>`;
-            }
-          })
-          .catch((error) => {
-            console.error("Error clearing scanner:", error);
-          });
-      }
+        function onScanSuccess(decodedText, decodedResult) {
+          html5QrcodeScanner
+            .clear()
+            .then(() => {
+              resultContainer.innerHTML = `<span style="color: green;">Código QR detectado:</span> <br> ${decodedText}`;
+              if (decodedText.startsWith("http")) {
+                resultContainer.innerHTML += `<br><em>Es un enlace detectado. Por favor, verifica manualmente que el sitio sea confiable antes de visitarlo.</em>`;
+              } else {
+                resultContainer.innerHTML += `<br><em>No es un enlace web. Verifica el contenido con precaución.</em>`;
+              }
+            })
+            .catch((error) => {
+              console.error("Error clearing scanner:", error);
+            });
+        }
 
-      function onScanFailure(error) {}
+        function onScanFailure(error) {}
 
-      let html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: 250 },
-        false
-      );
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+          "reader",
+          { fps: 10, qrbox: 250 },
+          false
+        );
 
-      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+      });
     </script>
   </body>
 </html>
