@@ -15,25 +15,45 @@
       href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css"
     />
     <style>
-      /* Adaptación sencilla al estilo de tu página */
       main.container {
         max-width: 700px;
         margin: 2rem auto;
         padding: 1rem;
-        background: #1e1e1e; /* color oscuro para terminal */
+        background: #1e1e1e;
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
         color: #eee;
         font-family: "Courier New", Courier, monospace;
       }
+
       #terminal {
         height: 350px;
         width: 100%;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 14px;
+        overflow-y: auto;
       }
+
+      .xterm {
+        font-family: "Courier New", Courier, monospace !important;
+      }
+
       h2.section-title {
         color: #00ff99;
         margin-bottom: 1rem;
         text-align: center;
+      }
+
+      .terminal::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .terminal::-webkit-scrollbar-thumb {
+        background-color: #444;
+      }
+
+      .terminal .xterm-viewport {
+        scrollbar-width: none;
       }
     </style>
   </head>
@@ -58,7 +78,7 @@
     </header>
 
     <main class="container">
-      <h2 class="section-title">Terminal Interactiva CUDI</h2>
+      <h2 class="section-title">CUDI cmd</h2>
       <p>
         Aprende comandos básicos de seguridad digital y tecnología usando esta
         terminal.
@@ -76,15 +96,19 @@
     <script>
       const term = new Terminal({
         cursorBlink: true,
+        fontFamily: "Courier New, monospace",
+        fontSize: 14,
         theme: {
           background: "#1e1e1e",
           foreground: "#00ff99",
         },
       });
+
       term.open(document.getElementById("terminal"));
+      term.focus();
 
       const prompt = () => {
-        term.write("\r\n> ");
+        term.write("\r\n\x1b[1;32muser@CUDI\x1b[0m > ");
       };
 
       const commands = {
@@ -98,7 +122,6 @@
         clear: "Limpiando pantalla...",
       };
 
-      // Mostrar mensaje de bienvenida y prompt
       term.writeln("Bienvenido a la terminal interactiva de CUDI.");
       term.writeln('Escribe "help" para ver los comandos disponibles.');
       prompt();
@@ -109,29 +132,25 @@
         const char = e.key;
 
         if (char === "\r") {
-          // Enter
           const cmd = input.trim().toLowerCase();
+          term.write("\r\n"); // Nueva línea antes de respuesta
+
           if (cmd === "clear") {
             term.clear();
           } else if (commands[cmd]) {
-            term.writeln("\r\n" + commands[cmd]);
-          } else if (cmd.length === 0) {
-            // Nada
-          } else {
-            term.writeln(`\r\nComando no reconocido: ${cmd}`);
+            term.writeln(commands[cmd]);
+          } else if (cmd.length > 0) {
+            term.writeln(`\x1b[31mComando no reconocido: ${cmd}\x1b[0m`);
           }
+
           input = "";
           prompt();
         } else if (char === "\u007F") {
-          // Backspace
-          // borrar solo si input no está vacío
           if (input.length > 0) {
-            // mover cursor hacia atrás y borrar el caracter en la terminal
             term.write("\b \b");
             input = input.slice(0, -1);
           }
         } else if (char >= " ") {
-          // caracteres imprimibles
           term.write(char);
           input += char;
         }
