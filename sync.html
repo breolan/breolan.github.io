@@ -17,7 +17,7 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        font-family: sans-serif;
+        font-family: "Courier New", Courier, monospace;
         background-color: #f3f5f9;
         display: flex;
         flex-direction: column;
@@ -27,40 +27,45 @@
         max-width: 700px;
         margin: 2rem auto;
         padding: 2rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-        color: #333;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: #1e1e1e;
         flex: 1;
+        text-align: center;
       }
 
       h2.section-title {
         color: #003366;
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
         text-align: center;
       }
 
-      .file-drop {
-        border: 2px dashed #003366;
-        padding: 2rem;
-        text-align: center;
+      .upload-box {
+        background-color: #f0f0f0;
+        border: 2px dashed #999;
         border-radius: 10px;
-        background-color: #f0f4f8;
+        padding: 3rem 2rem;
         cursor: pointer;
-        transition: background 0.2s, border-color 0.2s;
+        transition: background-color 0.2s, border-color 0.2s;
       }
 
-      .file-drop:hover {
-        background-color: #e6eef5;
-        border-color: #0055aa;
+      .upload-box:hover {
+        background-color: #e6e6e6;
+        border-color: #666;
+      }
+
+      .upload-box p {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #333;
       }
 
       #status {
-        margin-top: 1rem;
-        text-align: center;
+        margin-top: 1.5rem;
+        font-weight: bold;
         color: #003366;
         word-break: break-word;
-        font-weight: bold;
       }
 
       footer {
@@ -72,13 +77,17 @@
         margin-top: auto;
       }
 
+      .site-header {
+        background-color: #003366;
+        color: white;
+        padding: 1rem 2rem;
+      }
+
       .header-container {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 2rem;
-        background-color: #003366;
-        color: white;
+        flex-wrap: wrap;
       }
 
       .logo {
@@ -103,7 +112,7 @@
       }
 
       .menu-toggle {
-        display: none; /* no usado por ahora */
+        display: none;
       }
     </style>
   </head>
@@ -129,12 +138,8 @@
 
     <main class="container">
       <h2 class="section-title">CUDI Sync</h2>
-      <p style="text-align: center">
-        Comparte archivos de forma segura, privada y directa desde tu navegador.
-        Sin cuentas, sin servidores.
-      </p>
 
-      <div class="file-drop" id="dropZone">
+      <div class="upload-box" id="dropZone">
         <p>Haz clic o arrastra un archivo aquí para compartir</p>
         <input type="file" id="fileInput" hidden />
       </div>
@@ -161,7 +166,6 @@
           status.innerText = `Archivo seleccionado: ${file.name} (${Math.round(
             file.size / 1024
           )} KB)`;
-          // Aquí irá la lógica de cifrado y P2P
         } else {
           status.innerText = "Ningún archivo seleccionado.";
         }
@@ -169,16 +173,16 @@
 
       dropZone.addEventListener("dragover", (e) => {
         e.preventDefault();
-        dropZone.style.backgroundColor = "#e6eef5";
+        dropZone.style.backgroundColor = "#e6e6e6";
       });
 
       dropZone.addEventListener("dragleave", () => {
-        dropZone.style.backgroundColor = "#f0f4f8";
+        dropZone.style.backgroundColor = "#f0f0f0";
       });
 
       dropZone.addEventListener("drop", (e) => {
         e.preventDefault();
-        dropZone.style.backgroundColor = "#f0f4f8";
+        dropZone.style.backgroundColor = "#f0f0f0";
         const file = e.dataTransfer.files[0];
         if (file) {
           fileInput.files = e.dataTransfer.files;

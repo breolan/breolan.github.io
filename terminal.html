@@ -14,7 +14,20 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css"
     />
+
     <style>
+      /* Estructura base */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "Courier New", Courier, monospace;
+        background-color: #f3f5f9;
+        display: flex;
+        flex-direction: column;
+      }
+
       main.container {
         max-width: 700px;
         margin: 2rem auto;
@@ -24,18 +37,29 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
         color: #eee;
         font-family: "Courier New", Courier, monospace;
+        flex: 1;
       }
 
       #terminal {
         height: 350px;
         width: 100%;
-        font-family: "Courier New", Courier, monospace;
         font-size: 14px;
-        overflow-y: auto;
+        overflow: hidden; /* quita barras de scroll */
       }
 
       .xterm {
         font-family: "Courier New", Courier, monospace !important;
+        font-size: 14px !important;
+        overflow: hidden !important;
+      }
+
+      .xterm-viewport {
+        overflow: auto !important;
+        scrollbar-width: none;
+      }
+
+      .xterm-viewport::-webkit-scrollbar {
+        display: none;
       }
 
       h2.section-title {
@@ -44,16 +68,28 @@
         text-align: center;
       }
 
-      .terminal::-webkit-scrollbar {
-        width: 6px;
+      footer {
+        background-color: #003366;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        font-size: 14px;
       }
 
-      .terminal::-webkit-scrollbar-thumb {
-        background-color: #444;
+      /* Sticky footer */
+      body {
+        display: flex;
+        flex-direction: column;
       }
 
-      .terminal .xterm-viewport {
-        scrollbar-width: none;
+      footer {
+        margin-top: auto;
+      }
+
+      /* Opcional: scroll solo si es necesario */
+      .terminal-wrapper {
+        height: 350px;
+        overflow-y: auto;
       }
     </style>
   </head>
@@ -83,7 +119,7 @@
         Aprende comandos básicos de seguridad digital y tecnología usando esta
         terminal.
       </p>
-      <div id="terminal"></div>
+      <div id="terminal" class="terminal-wrapper"></div>
     </main>
 
     <footer>
@@ -133,7 +169,7 @@
 
         if (char === "\r") {
           const cmd = input.trim().toLowerCase();
-          term.write("\r\n"); // Nueva línea antes de respuesta
+          term.write("\r\n");
 
           if (cmd === "clear") {
             term.clear();

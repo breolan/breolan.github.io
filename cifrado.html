@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CUDI Sync - Cifrado Seguro</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="./icons/logo-removebg-preview.png"
+    />
+    <style>
+      /* Base estética CUDI */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "Courier New", Courier, monospace;
+        background: #f3f5f9;
+        display: flex;
+        flex-direction: column;
+        color: #00ff99;
+      }
+
+      header.site-header,
+      footer {
+        background-color: #003366;
+        color: white;
+        font-family: "Courier New", Courier, monospace;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+      }
+      header .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: bold;
+        font-size: 1.3rem;
+      }
+      header .logo img {
+        height: 32px;
+        width: 32px;
+      }
+      nav.navbar a {
+        color: white;
+        margin-left: 1rem;
+        text-decoration: none;
+        font-weight: normal;
+      }
+      nav.navbar a:hover {
+        text-decoration: underline;
+      }
+
+      main.container {
+        flex: 1;
+        max-width: 600px;
+        margin: 3rem auto;
+        background: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        padding: 2rem 2rem 3rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #eee;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      h2.section-title {
+        margin-bottom: 2rem;
+        color: #00ff99;
+        font-weight: normal;
+        text-align: center;
+      }
+
+      .drop-area {
+        border: 2px dashed #00ff99;
+        border-radius: 8px;
+        width: 100%;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        color: #00ff99;
+        margin-bottom: 1.5rem;
+        user-select: none;
+        transition: background-color 0.3s ease;
+      }
+      .drop-area.dragover {
+        background-color: #003366;
+      }
+
+      input[type="password"] {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: none;
+        margin-bottom: 1.5rem;
+        font-family: "Courier New", Courier, monospace;
+        outline: none;
+        color: #1e1e1e;
+      }
+
+      .buttons {
+        display: flex;
+        width: 100%;
+        gap: 1rem;
+      }
+
+      button {
+        flex: 1;
+        padding: 0.8rem;
+        font-size: 1.1rem;
+        background-color: #00ff99;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Courier New", Courier, monospace;
+        color: #1e1e1e;
+        transition: background-color 0.3s ease;
+        user-select: none;
+      }
+      button:hover {
+        background-color: #00cc77;
+      }
+
+      #status {
+        margin-top: 1.5rem;
+        color: #00ff99;
+        font-weight: bold;
+        min-height: 1.5em;
+        text-align: center;
+        font-family: "Courier New", Courier, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">
+        <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
+        <span>CUDI</span>
+      </div>
+      <nav class="navbar" id="navbar">
+        <a href="./index.html">Inicio</a>
+        <a href="#about">Sobre Nosotros</a>
+        <a href="#resources">Recursos</a>
+        <a href="./herramientas.html">Herramientas</a>
+        <a href="#contact">Contacto</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <h2 class="section-title">CUDI Sync - Cifrado Seguro de Archivos</h2>
+
+      <div id="dropArea" class="drop-area">
+        Arrastra aquí el archivo para cifrar o descifrar
+      </div>
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Introduce la contraseña para cifrar/descifrar"
+        autocomplete="new-password"
+      />
+
+      <div class="buttons">
+        <button id="encryptBtn">Cifrar</button>
+        <button id="decryptBtn">Descifrar</button>
+      </div>
+
+      <div id="status"></div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; 2025 CUDI - Comunidad de Usuarios para la Defensa Informática
+      </p>
+    </footer>
+
+    <script>
+      let fileData = null;
+      let fileName = "";
+
+      const dropArea = document.getElementById("dropArea");
+      const status = document.getElementById("status");
+
+      dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("dragover");
+      });
+
+      dropArea.addEventListener("dragleave", (e) => {
+        dropArea.classList.remove("dragover");
+      });
+
+      dropArea.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("dragover");
+
+        if (e.dataTransfer.files.length === 0) {
+          status.textContent = "No se detectó ningún archivo.";
+          return;
+        }
+
+        const file = e.dataTransfer.files[0];
+        fileName = file.name;
+        fileData = await file.arrayBuffer();
+        status.textContent = `Archivo "${fileName}" cargado.`;
+      });
+
+      dropArea.addEventListener("click", () => {
+        // Crear input oculto para seleccionar archivo manualmente
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "*/*";
+        input.onchange = async (e) => {
+          if (input.files.length === 0) return;
+          const file = input.files[0];
+          fileName = file.name;
+          fileData = await file.arrayBuffer();
+          status.textContent = `Archivo "${fileName}" cargado.`;
+        };
+        input.click();
+      });
+
+      async function getKeyMaterial(password) {
+        const enc = new TextEncoder();
+        return window.crypto.subtle.importKey(
+          "raw",
+          enc.encode(password),
+          { name: "PBKDF2" },
+          false,
+          ["deriveKey"]
+        );
+      }
+
+      async function deriveKey(password, salt) {
+        const keyMaterial = await getKeyMaterial(password);
+        return window.crypto.subtle.deriveKey(
+          {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 100000,
+            hash: "SHA-256",
+          },
+          keyMaterial,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["encrypt", "decrypt"]
+        );
+      }
+
+      async function encryptData(data, password) {
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const key = await deriveKey(password, salt);
+
+        const encrypted = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: iv },
+          key,
+          data
+        );
+
+        // Concat salt + iv + encrypted
+        const encryptedArray = new Uint8Array(encrypted);
+        const combined = new Uint8Array(
+          salt.length + iv.length + encryptedArray.length
+        );
+        combined.set(salt, 0);
+        combined.set(iv, salt.length);
+        combined.set(encryptedArray, salt.length + iv.length);
+
+        return combined;
+      }
+
+      async function decryptData(data, password) {
+        const salt = data.slice(0, 16);
+        const iv = data.slice(16, 28);
+        const encrypted = data.slice(28);
+
+        const key = await deriveKey(password, salt);
+
+        try {
+          const decrypted = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            encrypted
+          );
+          return new Uint8Array(decrypted);
+        } catch (e) {
+          throw new Error("Contraseña incorrecta o archivo corrupto.");
+        }
+      }
+
+      function download(data, filename) {
+        const blob = new Blob([data]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document
+        .getElementById("encryptBtn")
+        .addEventListener("click", async () => {
+          status.textContent = "";
+          if (!fileData) {
+            status.textContent = "Arrastra o selecciona un archivo primero.";
+            return;
+          }
+          const password = document.getElementById("password").value;
+          if (!password) {
+            status.textContent = "Introduce una contraseña para cifrar.";
+            return;
+          }
+
+          status.textContent = "Cifrando...";
+          try {
+            const encrypted = await encryptData(fileData, password);
+            download(encrypted, fileName + ".cudi");
+            status.textContent = "Archivo cifrado y descargado con éxito.";
+            fileData = null; // resetear archivo cargado
+            fileName = "";
+          } catch (e) {
+            status.textContent = "Error al cifrar: " + e.message;
+          }
+        });
+
+      document
+        .getElementById("decryptBtn")
+        .addEventListener("click", async () => {
+          status.textContent = "";
+          if (!fileData) {
+            status.textContent =
+              "Arrastra o selecciona un archivo cifrado primero.";
+            return;
+          }
+          const password = document.getElementById("password").value;
+          if (!password) {
+            status.textContent = "Introduce una contraseña para descifrar.";
+            return;
+          }
+
+          status.textContent = "Descifrando...";
+          try {
+            const decrypted = await decryptData(
+              new Uint8Array(fileData),
+              password
+            );
+            // Intentar sacar el nombre original quitando .cudi si existe
+            let originalName = fileName.replace(/\.cudi$/, "");
+            download(decrypted, originalName);
+            status.textContent = "Archivo descifrado y descargado con éxito.";
+            fileData = null;
+            fileName = "";
+          } catch (e) {
+            status.textContent = "Error al descifrar: " + e.message;
+          }
+        });
+    </script>
+  </body>
+</html>
