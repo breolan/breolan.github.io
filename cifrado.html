@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CUDI Sync - Cifrado Seguro</title>
+    <title>CUDI Cypher - Cifrado Seguro</title>
     <link rel="stylesheet" href="./css/styles.css" />
     <link
       rel="icon"
@@ -11,150 +11,198 @@
       href="./icons/logo-removebg-preview.png"
     />
     <style>
-      /* Base estética CUDI */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: "Courier New", Courier, monospace;
-        background: #f3f5f9;
-        display: flex;
-        flex-direction: column;
-        color: #00ff99;
+      :root {
+        --azul: #005baa;
+        --celeste: #009fd9;
+        --azul-oscuro: #003b75;
+        --amarillo: #f9c74f;
+        --gris-fondo: #f2f4f8;
       }
 
-      header.site-header,
-      footer {
-        background-color: #003366;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      html,
+      body {
+        height: 100%;
+        background-color: var(--gris-fondo);
+        color: #222;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header.site-header {
+        background: linear-gradient(to right, var(--azul), var(--celeste));
         color: white;
-        font-family: "Courier New", Courier, monospace;
+        padding: 10px 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .header-container {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 1rem 2rem;
+        max-width: 1100px;
+        margin: 0 auto;
       }
-      header .logo {
+
+      .logo {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-weight: bold;
-        font-size: 1.3rem;
+        gap: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
       }
-      header .logo img {
-        height: 32px;
-        width: 32px;
+
+      .logo img {
+        height: 40px;
+        width: auto;
       }
+
+      nav.navbar {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+      }
+
       nav.navbar a {
         color: white;
-        margin-left: 1rem;
         text-decoration: none;
-        font-weight: normal;
+        font-weight: 500;
+        transition: color 0.3s;
       }
+
       nav.navbar a:hover {
-        text-decoration: underline;
+        color: var(--amarillo);
       }
 
       main.container {
-        flex: 1;
-        max-width: 600px;
-        margin: 3rem auto;
-        background: #1e1e1e;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
-        padding: 2rem 2rem 3rem 2rem;
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         display: flex;
         flex-direction: column;
         align-items: center;
-        color: #eee;
-        font-family: "Courier New", Courier, monospace;
+        animation: fadeIn 0.5s ease-in-out;
       }
 
       h2.section-title {
-        margin-bottom: 2rem;
-        color: #00ff99;
-        font-weight: normal;
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: var(--azul);
+        font-weight: 600;
         text-align: center;
       }
 
       .drop-area {
-        border: 2px dashed #00ff99;
-        border-radius: 8px;
+        border: 2px dashed var(--celeste);
+        border-radius: 10px;
         width: 100%;
-        padding: 2rem;
+        padding: 30px;
         text-align: center;
         cursor: pointer;
-        color: #00ff99;
-        margin-bottom: 1.5rem;
-        user-select: none;
+        color: var(--celeste);
+        background-color: #f9fbfe;
+        margin-bottom: 20px;
         transition: background-color 0.3s ease;
       }
+
       .drop-area.dragover {
-        background-color: #003366;
+        background-color: #e0f4ff;
       }
 
       input[type="password"] {
         width: 100%;
-        padding: 0.7rem 1rem;
+        padding: 10px 15px;
         font-size: 1rem;
         border-radius: 6px;
-        border: none;
-        margin-bottom: 1.5rem;
-        font-family: "Courier New", Courier, monospace;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
         outline: none;
-        color: #1e1e1e;
       }
 
       .buttons {
         display: flex;
         width: 100%;
-        gap: 1rem;
+        gap: 15px;
+        margin-top: 10px;
       }
 
       button {
         flex: 1;
-        padding: 0.8rem;
-        font-size: 1.1rem;
-        background-color: #00ff99;
+        padding: 12px;
+        font-size: 1rem;
+        background-color: var(--azul);
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
-        font-family: "Courier New", Courier, monospace;
-        color: #1e1e1e;
+        color: white;
         transition: background-color 0.3s ease;
-        user-select: none;
       }
+
       button:hover {
-        background-color: #00cc77;
+        background-color: var(--azul-oscuro);
       }
 
       #status {
-        margin-top: 1.5rem;
-        color: #00ff99;
+        margin-top: 25px;
+        color: var(--azul);
         font-weight: bold;
         min-height: 1.5em;
         text-align: center;
-        font-family: "Courier New", Courier, monospace;
+      }
+
+      footer {
+        background: var(--azul-oscuro);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: auto;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
   <body>
     <header class="site-header">
-      <div class="logo">
-        <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
-        <span>CUDI</span>
+      <div class="header-container">
+        <div class="logo">
+          <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
+          <span>CUDI</span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <a href="./index.html">Inicio</a>
+          <a href="#about">Sobre Nosotros</a>
+          <a href="#resources">Recursos</a>
+          <a href="./herramientas.html">Herramientas</a>
+          <a href="#contact">Contacto</a>
+        </nav>
       </div>
-      <nav class="navbar" id="navbar">
-        <a href="./index.html">Inicio</a>
-        <a href="#about">Sobre Nosotros</a>
-        <a href="#resources">Recursos</a>
-        <a href="./herramientas.html">Herramientas</a>
-        <a href="#contact">Contacto</a>
-      </nav>
     </header>
 
     <main class="container">
-      <h2 class="section-title">CUDI Sync - Cifrado Seguro de Archivos</h2>
+      <h2 class="section-title">CUDI Cypher - Cifrado Seguro de Archivos</h2>
 
       <div id="dropArea" class="drop-area">
         Arrastra aquí el archivo para cifrar o descifrar
@@ -213,11 +261,10 @@
       });
 
       dropArea.addEventListener("click", () => {
-        // Crear input oculto para seleccionar archivo manualmente
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "*/*";
-        input.onchange = async (e) => {
+        input.onchange = async () => {
           if (input.files.length === 0) return;
           const file = input.files[0];
           fileName = file.name;
@@ -265,7 +312,6 @@
           data
         );
 
-        // Concat salt + iv + encrypted
         const encryptedArray = new Uint8Array(encrypted);
         const combined = new Uint8Array(
           salt.length + iv.length + encryptedArray.length
@@ -325,7 +371,7 @@
             const encrypted = await encryptData(fileData, password);
             download(encrypted, fileName + ".cudi");
             status.textContent = "Archivo cifrado y descargado con éxito.";
-            fileData = null; // resetear archivo cargado
+            fileData = null;
             fileName = "";
           } catch (e) {
             status.textContent = "Error al cifrar: " + e.message;
@@ -353,7 +399,6 @@
               new Uint8Array(fileData),
               password
             );
-            // Intentar sacar el nombre original quitando .cudi si existe
             let originalName = fileName.replace(/\.cudi$/, "");
             download(decrypted, originalName);
             status.textContent = "Archivo descifrado y descargado con éxito.";
