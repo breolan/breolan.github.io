@@ -133,6 +133,18 @@
         outline: none;
       }
 
+      /* Nuevo input para el nombre de archivo */
+      #fileNameInput {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        outline: none;
+        display: none;
+      }
+
       .buttons {
         display: flex;
         width: 100%;
@@ -208,6 +220,9 @@
         Arrastra aquí el archivo para cifrar o descifrar
       </div>
 
+      <!-- Input para cambiar nombre de archivo -->
+      <input type="text" id="fileNameInput" placeholder="Nombre del archivo" />
+
       <input
         type="password"
         id="password"
@@ -235,6 +250,7 @@
 
       const dropArea = document.getElementById("dropArea");
       const status = document.getElementById("status");
+      const fileNameInput = document.getElementById("fileNameInput");
 
       dropArea.addEventListener("dragover", (e) => {
         e.preventDefault();
@@ -258,6 +274,10 @@
         fileName = file.name;
         fileData = await file.arrayBuffer();
         status.textContent = `Archivo "${fileName}" cargado.`;
+
+        // Mostrar input con el nombre editable
+        fileNameInput.style.display = "block";
+        fileNameInput.value = fileName;
       });
 
       dropArea.addEventListener("click", () => {
@@ -270,6 +290,9 @@
           fileName = file.name;
           fileData = await file.arrayBuffer();
           status.textContent = `Archivo "${fileName}" cargado.`;
+
+          fileNameInput.style.display = "block";
+          fileNameInput.value = fileName;
         };
         input.click();
       });
@@ -366,13 +389,18 @@
             return;
           }
 
+          const customName = fileNameInput.value.trim();
+          let outputName = customName || fileName;
+
           status.textContent = "Cifrando...";
           try {
             const encrypted = await encryptData(fileData, password);
-            download(encrypted, fileName + ".cudi");
+            download(encrypted, outputName + ".cudi");
             status.textContent = "Archivo cifrado y descargado con éxito.";
             fileData = null;
             fileName = "";
+            fileNameInput.value = "";
+            fileNameInput.style.display = "none";
           } catch (e) {
             status.textContent = "Error al cifrar: " + e.message;
           }
@@ -404,6 +432,8 @@
             status.textContent = "Archivo descifrado y descargado con éxito.";
             fileData = null;
             fileName = "";
+            fileNameInput.value = "";
+            fileNameInput.style.display = "none";
           } catch (e) {
             status.textContent = "Error al descifrar: " + e.message;
           }
