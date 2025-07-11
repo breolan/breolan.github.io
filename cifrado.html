@@ -133,7 +133,6 @@
         outline: none;
       }
 
-      /* Nuevo input para el nombre de archivo */
       #fileNameInput {
         width: 100%;
         padding: 10px 15px;
@@ -214,13 +213,12 @@
     </header>
 
     <main class="container">
-      <h2 class="section-title">CUDI Cypher - Cifrado Seguro de Archivos</h2>
+      <h2 class="section-title">CUDI Cypher</h2>
 
       <div id="dropArea" class="drop-area">
         Arrastra aquí el archivo para cifrar o descifrar
       </div>
 
-      <!-- Input para cambiar nombre de archivo -->
       <input type="text" id="fileNameInput" placeholder="Nombre del archivo" />
 
       <input
@@ -275,7 +273,6 @@
         fileData = await file.arrayBuffer();
         status.textContent = `Archivo "${fileName}" cargado.`;
 
-        // Mostrar input con el nombre editable
         fileNameInput.style.display = "block";
         fileNameInput.value = fileName;
       });
