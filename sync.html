@@ -3,116 +3,207 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CUDI - Sync</title>
+    <title>CUDI Cypher - Cifrado Seguro</title>
     <link rel="stylesheet" href="./css/styles.css" />
     <link
       rel="icon"
       type="image/png"
       href="./icons/logo-removebg-preview.png"
     />
-
     <style>
-      html,
-      body {
+      :root {
+        --azul: #005baa;
+        --celeste: #009fd9;
+        --azul-oscuro: #003b75;
+        --amarillo: #f9c74f;
+        --gris-fondo: #f2f4f8;
+      }
+
+      * {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      html,
+      body {
         height: 100%;
-        font-family: "Courier New", Courier, monospace;
-        background-color: #f3f5f9;
+        background-color: var(--gris-fondo);
+        color: #222;
+        line-height: 1.6;
         display: flex;
         flex-direction: column;
       }
 
-      main.container {
-        max-width: 700px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        color: #1e1e1e;
-        flex: 1;
-        text-align: center;
-      }
-
-      h2.section-title {
-        color: #003366;
-        margin-bottom: 2rem;
-        text-align: center;
-      }
-
-      .upload-box {
-        background-color: #f0f0f0;
-        border: 2px dashed #999;
-        border-radius: 10px;
-        padding: 3rem 2rem;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .upload-box:hover {
-        background-color: #e6e6e6;
-        border-color: #666;
-      }
-
-      .upload-box p {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #333;
-      }
-
-      #status {
-        margin-top: 1.5rem;
-        font-weight: bold;
-        color: #003366;
-        word-break: break-word;
-      }
-
-      footer {
-        background-color: #003366;
+      header.site-header {
+        background: linear-gradient(to right, var(--azul), var(--celeste));
         color: white;
-        text-align: center;
-        padding: 1rem;
-        font-size: 14px;
-        margin-top: auto;
-      }
-
-      .site-header {
-        background-color: #003366;
-        color: white;
-        padding: 1rem 2rem;
+        padding: 10px 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
       }
 
       .header-container {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
+        justify-content: space-between;
+        max-width: 1100px;
+        margin: 0 auto;
       }
 
       .logo {
         display: flex;
         align-items: center;
         gap: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
       }
 
       .logo img {
         height: 40px;
+        width: auto;
       }
 
-      .navbar a {
+      nav.navbar {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+      }
+
+      nav.navbar a {
         color: white;
-        margin-left: 1rem;
         text-decoration: none;
         font-weight: 500;
+        transition: color 0.3s;
       }
 
-      .navbar a:hover {
-        text-decoration: underline;
+      nav.navbar a:hover {
+        color: var(--amarillo);
       }
 
-      .menu-toggle {
+      main.container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      h2.section-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: var(--azul);
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .drop-area {
+        border: 2px dashed var(--celeste);
+        border-radius: 10px;
+        width: 100%;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        color: var(--celeste);
+        background-color: #f9fbfe;
+        margin-bottom: 20px;
+        transition: background-color 0.3s ease;
+      }
+
+      .drop-area.dragover {
+        background-color: #e0f4ff;
+      }
+
+      input[type="password"],
+      #codigoSala {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        outline: none;
+      }
+
+      #fileNameInput {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        outline: none;
         display: none;
+      }
+
+      .buttons {
+        display: flex;
+        width: 100%;
+        gap: 15px;
+        margin-top: 10px;
+      }
+
+      button {
+        flex: 1;
+        padding: 12px;
+        font-size: 1rem;
+        background-color: var(--azul);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: var(--azul-oscuro);
+      }
+
+      #status {
+        margin-top: 25px;
+        color: var(--azul);
+        font-weight: bold;
+        min-height: 1.5em;
+        text-align: center;
+        word-break: break-word;
+      }
+
+      #qrContainer {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      #qrContainer canvas {
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+      }
+
+      footer {
+        background: var(--azul-oscuro);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: auto;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
@@ -123,7 +214,7 @@
           <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
           <span>CUDI</span>
         </div>
-        <nav class="navbar">
+        <nav class="navbar" id="navbar">
           <a href="./index.html">Inicio</a>
           <a href="#about">Sobre Nosotros</a>
           <a href="#resources">Recursos</a>
@@ -136,18 +227,35 @@
     <main class="container">
       <h2 class="section-title">CUDI Sync</h2>
 
-      <div
-        class="upload-box"
-        id="dropZone"
-        tabindex="0"
-        role="button"
-        aria-label="Área para subir archivo"
-      >
-        <p>Haz clic o arrastra un archivo aquí para compartir</p>
-        <input type="file" id="fileInput" hidden />
+      <div id="menu">
+        <p>¿Qué quieres hacer?</p>
+        <div class="buttons">
+          <button onclick="crearSala()">Enviar archivo</button>
+          <button onclick="mostrarRecepcion()">Recibir archivo</button>
+        </div>
+        <div id="recepcion" style="width: 100%; display: none">
+          <input type="text" id="codigoSala" placeholder="Código de sala" />
+          <button onclick="unirseSala()" style="margin-top: 10px">
+            Unirse
+          </button>
+        </div>
       </div>
 
-      <div id="status">Esperando conexión…</div>
+      <div id="zonaTransferencia" style="display: none; width: 100%">
+        <div
+          class="drop-area"
+          id="dropZone"
+          tabindex="0"
+          role="button"
+          aria-label="Zona para subir archivos"
+        >
+          <p>Haz clic o arrastra un archivo aquí para compartir</p>
+          <input type="file" id="fileInput" hidden />
+        </div>
+        <div id="status">Conectando…</div>
+
+        <div id="qrContainer"></div>
+      </div>
     </main>
 
     <footer>
@@ -156,102 +264,168 @@
       </p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
       const dropZone = document.getElementById("dropZone");
       const fileInput = document.getElementById("fileInput");
       const status = document.getElementById("status");
+      const qrContainer = document.getElementById("qrContainer");
+
+      let socket, peer, dataChannel;
+      let salaId = null;
+      let modo = null;
+      let qr;
+
+      function generarCodigo() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+      }
+
+      function crearSala() {
+        salaId = generarCodigo();
+        window.location.hash = `send-${salaId}`;
+        iniciarTransferencia();
+      }
+
+      function mostrarRecepcion() {
+        document.getElementById("recepcion").style.display = "block";
+      }
+
+      function unirseSala() {
+        const codigo = document.getElementById("codigoSala").value.trim();
+        if (codigo) {
+          salaId = codigo.toUpperCase();
+          window.location.hash = `receive-${salaId}`;
+          iniciarTransferencia();
+        }
+      }
+
+      function iniciarTransferencia() {
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("zonaTransferencia").style.display = "block";
+
+        const hash = window.location.hash.replace("#", "");
+        const [tipo, id] = hash.split("-");
+        modo = tipo;
+        salaId = id;
+
+        status.innerText = `Conectando a sala: ${salaId}`;
+
+        if (modo === "send") {
+          mostrarQR();
+        } else {
+          qrContainer.innerHTML = "";
+        }
+
+        iniciarConexion();
+      }
+
+      function mostrarQR() {
+        const urlSala = `${window.location.origin}${window.location.pathname}#receive-${salaId}`;
+        qrContainer.innerHTML = "";
+        qr = new QRious({
+          element: document.createElement("canvas"),
+          value: urlSala,
+          size: 180,
+        });
+        qrContainer.appendChild(qr.element);
+        const info = document.createElement("p");
+        info.innerText = "Escanea este código QR para unirte a la sala";
+        qrContainer.appendChild(info);
+      }
 
       dropZone.addEventListener("click", () => fileInput.click());
       dropZone.addEventListener("dragover", (e) => {
         e.preventDefault();
-        dropZone.style.backgroundColor = "#e6e6e6";
+        dropZone.classList.add("dragover");
       });
       dropZone.addEventListener("dragleave", () => {
-        dropZone.style.backgroundColor = "#f0f0f0";
+        dropZone.classList.remove("dragover");
       });
       dropZone.addEventListener("drop", (e) => {
         e.preventDefault();
-        dropZone.style.backgroundColor = "#f0f0f0";
+        dropZone.classList.remove("dragover");
         if (e.dataTransfer.files.length > 0) {
           fileInput.files = e.dataTransfer.files;
           fileInput.dispatchEvent(new Event("change"));
         }
       });
 
-      const [mode, room] = window.location.hash.slice(1).split("-");
-      const isInitiator = mode === "send";
+      function iniciarConexion() {
+        socket = new WebSocket("wss://cudi-sync-signalin.onrender.com");
+        peer = new RTCPeerConnection({
+          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        });
 
-      if (!room) {
-        status.innerText =
-          "❌ Error: debes usar una URL como #send-sala123 o #receive-sala123";
-        throw new Error("Falta sala en la URL");
-      }
-
-      const socket = new WebSocket("wss://cudi-sync-signalin.onrender.com");
-      const peer = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-      });
-
-      let dataChannel;
-
-      function send(msg) {
-        msg.room = room;
-        socket.send(JSON.stringify(msg));
-      }
-
-      socket.onopen = () => {
-        console.log("🔗 Conectado al servidor de señalización");
-        status.innerText = isInitiator
-          ? "Esperando receptor en sala: " + room
-          : "Esperando oferta en sala: " + room;
-
-        if (isInitiator) {
-          dataChannel = peer.createDataChannel("cudi");
-          setupSender();
-          peer
-            .createOffer()
-            .then((offer) => peer.setLocalDescription(offer))
-            .then(() => send({ type: "offer", offer: peer.localDescription }));
-        }
-      };
-
-      socket.onmessage = async (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.room !== room) return;
-
-        if (msg.type === "offer" && !isInitiator) {
-          await peer.setRemoteDescription(new RTCSessionDescription(msg.offer));
-          const answer = await peer.createAnswer();
-          await peer.setLocalDescription(answer);
-          send({ type: "answer", answer: peer.localDescription });
-        } else if (msg.type === "answer" && isInitiator) {
-          await peer.setRemoteDescription(
-            new RTCSessionDescription(msg.answer)
-          );
-        } else if (msg.type === "candidate") {
-          try {
-            await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
-          } catch (err) {
-            console.warn("❌ Error con ICE candidate:", err);
+        socket.onopen = () => {
+          socket.send(JSON.stringify({ type: "join", room: salaId }));
+          if (modo === "send") {
+            dataChannel = peer.createDataChannel("cudi");
+            setupSender();
+            peer
+              .createOffer()
+              .then((offer) => peer.setLocalDescription(offer))
+              .then(() => {
+                socket.send(
+                  JSON.stringify({
+                    type: "offer",
+                    offer: peer.localDescription,
+                    room: salaId,
+                  })
+                );
+              });
           }
-        }
-      };
+        };
 
-      peer.onicecandidate = (e) => {
-        if (e.candidate) send({ type: "candidate", candidate: e.candidate });
-      };
+        socket.onmessage = async (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg.room !== salaId) return;
 
-      peer.ondatachannel = (e) => {
-        dataChannel = e.channel;
-        setupReceiver();
-      };
+          if (msg.type === "offer" && modo === "receive") {
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(msg.offer)
+            );
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            socket.send(
+              JSON.stringify({
+                type: "answer",
+                answer: peer.localDescription,
+                room: salaId,
+              })
+            );
+          } else if (msg.type === "answer" && modo === "send") {
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(msg.answer)
+            );
+          } else if (msg.type === "candidate") {
+            await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
+          }
+        };
+
+        peer.onicecandidate = (e) => {
+          if (e.candidate) {
+            socket.send(
+              JSON.stringify({
+                type: "candidate",
+                candidate: e.candidate,
+                room: salaId,
+              })
+            );
+          }
+        };
+
+        peer.ondatachannel = (e) => {
+          dataChannel = e.channel;
+          setupReceiver();
+        };
+      }
 
       function setupSender() {
         dataChannel.onopen = () => {
-          status.innerText = "✅ Conectado. Puedes enviar un archivo.";
+          status.innerText = `Conectado. Tu sala es: ${salaId}`;
         };
         dataChannel.onclose = () => {
-          status.innerText = "❌ Conexión cerrada.";
+          status.innerText = "Conexión cerrada.";
         };
       }
 
@@ -267,34 +441,34 @@
           status.appendChild(a);
         };
         dataChannel.onopen = () => {
-          status.innerText = "✅ Conectado. Esperando archivo…";
+          status.innerText = `Conectado a la sala: ${salaId}`;
         };
         dataChannel.onclose = () => {
-          status.innerText = "❌ Conexión cerrada.";
+          status.innerText = "Conexión cerrada.";
         };
       }
 
       fileInput.addEventListener("change", () => {
-        const file = fileInput.files[0];
-        if (!file) {
-          status.innerText = "⚠️ No hay archivo seleccionado.";
-          return;
-        }
-        if (!dataChannel || dataChannel.readyState !== "open") {
-          status.innerText = "⚠️ La conexión no está lista.";
-          return;
-        }
+        if (dataChannel && dataChannel.readyState === "open") {
+          const archivo = fileInput.files[0];
+          if (!archivo) return;
 
-        status.innerText = `📤 Enviando: ${file.name}`;
-        const reader = new FileReader();
-        reader.onload = () => {
-          dataChannel.send(reader.result);
-          status.innerText = `✅ Archivo enviado: ${file.name}`;
-        };
-        reader.onerror = () => {
-          status.innerText = "❌ Error leyendo el archivo.";
-        };
-        reader.readAsArrayBuffer(file);
+          const reader = new FileReader();
+          reader.onload = () => {
+            dataChannel.send(reader.result);
+            status.innerText = `Archivo "${archivo.name}" enviado.`;
+          };
+          reader.readAsArrayBuffer(archivo);
+        } else {
+          alert("No estás conectado a ninguna sala.");
+        }
+      });
+
+      window.addEventListener("load", () => {
+        const hash = window.location.hash;
+        if (hash.startsWith("#send-") || hash.startsWith("#receive-")) {
+          iniciarTransferencia();
+        }
       });
     </script>
   </body>
