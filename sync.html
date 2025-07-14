@@ -367,9 +367,11 @@
               .then(() => {
                 socket.send(
                   JSON.stringify({
-                    type: "offer",
-                    offer: peer.localDescription,
-                    room: salaId,
+                    type: "signal",
+                    data: {
+                      signalType: "offer",
+                      signal: peer.localDescription,
+                    },
                   })
                 );
               });
@@ -378,27 +380,34 @@
 
         socket.onmessage = async (event) => {
           const msg = JSON.parse(event.data);
-          if (msg.room !== salaId) return;
+          if (msg.room && msg.room !== salaId) return;
 
-          if (msg.type === "offer" && modo === "receive") {
-            await peer.setRemoteDescription(
-              new RTCSessionDescription(msg.offer)
-            );
-            const answer = await peer.createAnswer();
-            await peer.setLocalDescription(answer);
-            socket.send(
-              JSON.stringify({
-                type: "answer",
-                answer: peer.localDescription,
-                room: salaId,
-              })
-            );
-          } else if (msg.type === "answer" && modo === "send") {
-            await peer.setRemoteDescription(
-              new RTCSessionDescription(msg.answer)
-            );
-          } else if (msg.type === "candidate") {
-            await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
+          if (msg.type === "signal") {
+            const { signalType, signal } = msg.data;
+
+            if (signalType === "offer" && modo === "receive") {
+              await peer.setRemoteDescription(
+                new RTCSessionDescription(signal)
+              );
+              const answer = await peer.createAnswer();
+              await peer.setLocalDescription(answer);
+              socket.send(
+                JSON.stringify({
+                  type: "signal",
+                  data: {
+                    signalType: "answer",
+                    signal: peer.localDescription,
+                  },
+                  room: salaId,
+                })
+              );
+            } else if (signalType === "answer" && modo === "send") {
+              await peer.setRemoteDescription(
+                new RTCSessionDescription(signal)
+              );
+            } else if (signalType === "candidate") {
+              await peer.addIceCandidate(new RTCIceCandidate(signal));
+            }
           }
         };
 
@@ -406,8 +415,11 @@
           if (e.candidate) {
             socket.send(
               JSON.stringify({
-                type: "candidate",
-                candidate: e.candidate,
+                type: "signal",
+                data: {
+                  signalType: "candidate",
+                  signal: e.candidate,
+                },
                 room: salaId,
               })
             );
@@ -436,7 +448,7 @@
           const a = document.createElement("a");
           a.href = url;
           a.download = "archivo_recibido";
-          a.textContent = "⬇️ Descargar archivo recibido";
+          a.textContent = "⬇ Descargar archivo recibido";
           status.innerHTML = "";
           status.appendChild(a);
         };
@@ -449,27 +461,25 @@
       }
 
       fileInput.addEventListener("change", () => {
-        if (dataChannel && dataChannel.readyState === "open") {
-          const archivo = fileInput.files[0];
-          if (!archivo) return;
-
-          const reader = new FileReader();
-          reader.onload = () => {
-            dataChannel.send(reader.result);
-            status.innerText = `Archivo "${archivo.name}" enviado.`;
-          };
-          reader.readAsArrayBuffer(archivo);
-        } else {
-          alert("No estás conectado a ninguna sala.");
+        if (!dataChannel || dataChannel.readyState !== "open") {
+          alert("No estás conectado aún.");
+          return;
         }
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const buffer = reader.result;
+          dataChannel.send(buffer);
+          status.innerText = `Archivo enviado: ${file.name}`;
+        };
+        reader.readAsArrayBuffer(file);
       });
 
-      window.addEventListener("load", () => {
-        const hash = window.location.hash;
-        if (hash.startsWith("#send-") || hash.startsWith("#receive-")) {
-          iniciarTransferencia();
-        }
-      });
+      if (window.location.hash) {
+        iniciarTransferencia();
+      }
     </script>
   </body>
 </html>
