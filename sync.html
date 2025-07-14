@@ -123,28 +123,31 @@
           <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
           <span>CUDI</span>
         </div>
-        <nav class="navbar" id="navbar">
+        <nav class="navbar">
           <a href="./index.html">Inicio</a>
           <a href="#about">Sobre Nosotros</a>
           <a href="#resources">Recursos</a>
           <a href="./herramientas.html">Herramientas</a>
           <a href="#contact">Contacto</a>
         </nav>
-        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
-          ☰
-        </button>
       </div>
     </header>
 
     <main class="container">
       <h2 class="section-title">CUDI Sync</h2>
 
-      <div class="upload-box" id="dropZone">
+      <div
+        class="upload-box"
+        id="dropZone"
+        tabindex="0"
+        role="button"
+        aria-label="Área para subir archivo"
+      >
         <p>Haz clic o arrastra un archivo aquí para compartir</p>
         <input type="file" id="fileInput" hidden />
       </div>
 
-      <div id="status">Ningún archivo seleccionado.</div>
+      <div id="status">Esperando conexión…</div>
     </main>
 
     <footer>
@@ -159,35 +162,139 @@
       const status = document.getElementById("status");
 
       dropZone.addEventListener("click", () => fileInput.click());
-
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files[0];
-        if (file) {
-          status.innerText = `Archivo seleccionado: ${file.name} (${Math.round(
-            file.size / 1024
-          )} KB)`;
-        } else {
-          status.innerText = "Ningún archivo seleccionado.";
-        }
-      });
-
       dropZone.addEventListener("dragover", (e) => {
         e.preventDefault();
         dropZone.style.backgroundColor = "#e6e6e6";
       });
-
       dropZone.addEventListener("dragleave", () => {
         dropZone.style.backgroundColor = "#f0f0f0";
       });
-
       dropZone.addEventListener("drop", (e) => {
         e.preventDefault();
         dropZone.style.backgroundColor = "#f0f0f0";
-        const file = e.dataTransfer.files[0];
-        if (file) {
+        if (e.dataTransfer.files.length > 0) {
           fileInput.files = e.dataTransfer.files;
           fileInput.dispatchEvent(new Event("change"));
         }
+      });
+
+      const [mode, room] = window.location.hash.slice(1).split("-");
+      const isInitiator = mode === "send";
+
+      if (!room) {
+        status.innerText =
+          "❌ Error: debes usar una URL como #send-sala123 o #receive-sala123";
+        throw new Error("Falta sala en la URL");
+      }
+
+      const socket = new WebSocket("wss://cudi-sync-signalin.onrender.com");
+      const peer = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
+
+      let dataChannel;
+
+      function send(msg) {
+        msg.room = room;
+        socket.send(JSON.stringify(msg));
+      }
+
+      socket.onopen = () => {
+        console.log("🔗 Conectado al servidor de señalización");
+        status.innerText = isInitiator
+          ? "Esperando receptor en sala: " + room
+          : "Esperando oferta en sala: " + room;
+
+        if (isInitiator) {
+          dataChannel = peer.createDataChannel("cudi");
+          setupSender();
+          peer
+            .createOffer()
+            .then((offer) => peer.setLocalDescription(offer))
+            .then(() => send({ type: "offer", offer: peer.localDescription }));
+        }
+      };
+
+      socket.onmessage = async (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.room !== room) return;
+
+        if (msg.type === "offer" && !isInitiator) {
+          await peer.setRemoteDescription(new RTCSessionDescription(msg.offer));
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+          send({ type: "answer", answer: peer.localDescription });
+        } else if (msg.type === "answer" && isInitiator) {
+          await peer.setRemoteDescription(
+            new RTCSessionDescription(msg.answer)
+          );
+        } else if (msg.type === "candidate") {
+          try {
+            await peer.addIceCandidate(new RTCIceCandidate(msg.candidate));
+          } catch (err) {
+            console.warn("❌ Error con ICE candidate:", err);
+          }
+        }
+      };
+
+      peer.onicecandidate = (e) => {
+        if (e.candidate) send({ type: "candidate", candidate: e.candidate });
+      };
+
+      peer.ondatachannel = (e) => {
+        dataChannel = e.channel;
+        setupReceiver();
+      };
+
+      function setupSender() {
+        dataChannel.onopen = () => {
+          status.innerText = "✅ Conectado. Puedes enviar un archivo.";
+        };
+        dataChannel.onclose = () => {
+          status.innerText = "❌ Conexión cerrada.";
+        };
+      }
+
+      function setupReceiver() {
+        dataChannel.onmessage = (e) => {
+          const blob = new Blob([e.data]);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "archivo_recibido";
+          a.textContent = "⬇️ Descargar archivo recibido";
+          status.innerHTML = "";
+          status.appendChild(a);
+        };
+        dataChannel.onopen = () => {
+          status.innerText = "✅ Conectado. Esperando archivo…";
+        };
+        dataChannel.onclose = () => {
+          status.innerText = "❌ Conexión cerrada.";
+        };
+      }
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          status.innerText = "⚠️ No hay archivo seleccionado.";
+          return;
+        }
+        if (!dataChannel || dataChannel.readyState !== "open") {
+          status.innerText = "⚠️ La conexión no está lista.";
+          return;
+        }
+
+        status.innerText = `📤 Enviando: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = () => {
+          dataChannel.send(reader.result);
+          status.innerText = `✅ Archivo enviado: ${file.name}`;
+        };
+        reader.onerror = () => {
+          status.innerText = "❌ Error leyendo el archivo.";
+        };
+        reader.readAsArrayBuffer(file);
       });
     </script>
   </body>
