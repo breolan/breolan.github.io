@@ -48,6 +48,7 @@
         justify-content: space-between;
         max-width: 1100px;
         margin: 0 auto;
+        width: 100%;
       }
       .logo {
         display: flex;
@@ -70,10 +71,37 @@
         text-decoration: none;
         font-weight: 500;
         transition: color 0.3s;
+        white-space: nowrap;
       }
       nav.navbar a:hover {
         color: var(--amarillo);
       }
+      .menu-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 21px;
+        cursor: pointer;
+        z-index: 1001;
+      }
+      .menu-toggle span {
+        display: block;
+        width: 100%;
+        height: 3px;
+        background-color: white;
+        transition: all 0.3s ease-in-out;
+      }
+      .menu-toggle.active span:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+      }
+      .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .menu-toggle.active span:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
+      }
+
       main.container {
         max-width: 700px;
         margin: 40px auto;
@@ -85,6 +113,7 @@
         flex-direction: column;
         align-items: center;
         animation: fadeIn 0.5s ease-in-out;
+        width: calc(100% - 40px);
       }
       h2.section-title {
         font-size: 28px;
@@ -133,8 +162,9 @@
         width: 100%;
         gap: 15px;
         margin-top: 10px;
+        flex-wrap: wrap;
       }
-      button {
+      .buttons button {
         flex: 1;
         padding: 12px;
         font-size: 1rem;
@@ -144,6 +174,7 @@
         cursor: pointer;
         color: white;
         transition: background-color 0.3s ease;
+        min-width: 120px;
       }
       button:hover {
         background-color: var(--azul-oscuro);
@@ -171,6 +202,8 @@
       #qrContainer canvas {
         border-radius: 12px;
         box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+        max-width: 100%;
+        height: auto;
       }
       footer {
         background: var(--azul-oscuro);
@@ -178,6 +211,7 @@
         text-align: center;
         padding: 20px;
         margin-top: auto;
+        width: 100%;
       }
       @keyframes fadeIn {
         from {
@@ -189,6 +223,110 @@
           transform: translateY(0);
         }
       }
+
+      @media (max-width: 768px) {
+        .header-container {
+          flex-wrap: wrap;
+          justify-content: center;
+          padding: 10px 0;
+        }
+        .logo {
+          width: 100%;
+          justify-content: center;
+          margin-bottom: 10px;
+          font-size: 1.8rem;
+        }
+        .logo img {
+          height: 50px;
+        }
+        nav.navbar {
+          flex-direction: column;
+          width: 100%;
+          gap: 15px;
+          display: none;
+          margin-top: 10px;
+          background: var(--azul-oscuro);
+          position: absolute;
+          top: 60px;
+          left: 0;
+          padding: 20px 0;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        nav.navbar.active {
+          display: flex;
+        }
+        nav.navbar a {
+          padding: 10px 20px;
+          width: 100%;
+          text-align: center;
+        }
+        nav.navbar a:hover {
+          background-color: var(--azul);
+        }
+        .menu-toggle {
+          display: flex;
+          position: absolute;
+          right: 20px;
+          top: 20px;
+        }
+
+        main.container {
+          margin: 20px auto;
+          padding: 20px;
+        }
+        h2.section-title {
+          font-size: 24px;
+        }
+        .drop-area {
+          padding: 20px;
+        }
+        input[type="password"],
+        #codigoSala {
+          padding: 8px 10px;
+          font-size: 0.9rem;
+        }
+        .buttons button {
+          flex: 1 1 100%;
+          margin-bottom: 10px;
+        }
+        .buttons button:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header.site-header {
+          padding: 10px;
+        }
+        .menu-toggle {
+          right: 15px;
+          top: 15px;
+        }
+        main.container {
+          padding: 15px;
+          margin: 15px auto;
+        }
+        h2.section-title {
+          font-size: 22px;
+        }
+        .drop-area {
+          padding: 15px;
+          font-size: 0.9rem;
+        }
+        input[type="password"],
+        #codigoSala {
+          padding: 8px 10px;
+          font-size: 0.9rem;
+        }
+        .buttons button {
+          font-size: 0.9rem;
+          padding: 10px;
+        }
+        #salaStatus,
+        #status {
+          font-size: 1rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -197,6 +335,11 @@
         <div class="logo">
           <img src="./icons/logo-removebg-preview.png" alt="Logo CUDI" />
           <span>CUDI</span>
+        </div>
+        <div class="menu-toggle" id="menuToggle">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
         <nav class="navbar" id="navbar">
           <a href="./index.html">Inicio</a>
@@ -257,6 +400,8 @@
       const status = document.getElementById("status");
       const salaStatus = document.getElementById("salaStatus");
       const qrContainer = document.getElementById("qrContainer");
+      const menuToggle = document.getElementById("menuToggle");
+      const navbar = document.getElementById("navbar");
 
       let socket, peer, dataChannel;
       let salaId = null;
@@ -266,11 +411,32 @@
 
       const CHUNK_SIZE = 16 * 1024;
       let archivoParaEnviar = null;
+      let enviarArchivoPendiente = false;
       let archivoRecibidoBuffers = [];
       let tamañoArchivoEsperado = 0;
       let nombreArchivoRecibido = "";
 
       fileInput.disabled = true;
+
+      // --- Funcionalidad del menú responsive ---
+      menuToggle.addEventListener("click", () => {
+        navbar.classList.toggle("active");
+        menuToggle.classList.toggle("active");
+        console.log("<<< DEBUG LOG >>> Menú toggle clicado.");
+      });
+
+      navbar.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+          if (navbar.classList.contains("active")) {
+            navbar.classList.remove("active");
+            menuToggle.classList.remove("active");
+            console.log(
+              "<<< DEBUG LOG >>> Enlace de navegación clicado, cerrando menú."
+            );
+          }
+        });
+      });
+      // --- Fin funcionalidad del menú responsive ---
 
       function generarCodigo() {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -280,11 +446,13 @@
         salaId = generarCodigo();
         modo = "send";
         window.location.hash = `send-${salaId}`;
+        console.log("<<< DEBUG LOG >>> Sala creada (modo 'send'):", salaId);
         iniciarTransferencia();
       }
 
       function mostrarRecepcion() {
         document.getElementById("recepcion").style.display = "block";
+        console.log("<<< DEBUG LOG >>> Mostrando sección de recepción.");
       }
 
       function unirseSala() {
@@ -293,7 +461,16 @@
           salaId = codigo.toUpperCase();
           modo = "receive";
           window.location.hash = `receive-${salaId}`;
+          console.log(
+            "<<< DEBUG LOG >>> Uniéndose a sala (modo 'receive'):",
+            salaId
+          );
           iniciarTransferencia();
+        } else {
+          console.warn(
+            "<<< DEBUG LOG >>> Intento de unirse a sala sin código."
+          );
+          alert("Por favor, introduce un código de sala.");
         }
       }
 
@@ -314,8 +491,16 @@
           qrContainer.appendChild(qr.element);
 
           status.innerText = "Sala creada. Esperando conexión...";
+          console.log(
+            "<<< DEBUG LOG >>> Modo 'send'. QR generado para:",
+            urlParaRecibir
+          );
         } else if (modo === "receive") {
           status.innerText = "Uniéndose a la sala, esperando conexión...";
+          console.log(
+            "<<< DEBUG LOG >>> Modo 'receive'. Intentando unirse a sala:",
+            salaId
+          );
         }
 
         iniciarConexion();
@@ -324,35 +509,53 @@
       }
 
       function iniciarConexion() {
+        console.log(
+          "<<< DEBUG LOG >>> Iniciando conexión WebSocket al servidor de señalización..."
+        );
+        // Asegúrate de que esta URL es correcta para tu servidor de Render
         socket = new WebSocket("wss://cudi-sync-signalin.onrender.com");
 
         socket.addEventListener("open", () => {
           status.innerText = "Conectado al servidor de señalización.";
+          console.log(
+            "<<< DEBUG LOG >>> WebSocket abierto. Enviando mensajes pendientes..."
+          );
 
           while (mensajePendiente.length > 0) {
             socket.send(mensajePendiente.shift());
           }
 
           enviarSocket({
-            tipo: "unirse",
-            sala: salaId,
+            type: "join",
+            room: salaId,
           });
+          console.log(
+            "<<< DEBUG LOG >>> Mensaje 'join' enviado al servidor para la sala:",
+            salaId
+          );
 
           if (modo === "send") {
+            console.log(
+              "<<< DEBUG LOG >>> Llamando a crearPeer(true) para modo 'send'."
+            );
             crearPeer(true);
           } else {
+            console.log(
+              "<<< DEBUG LOG >>> Llamando a crearPeer(false) para modo 'receive'."
+            );
             crearPeer(false);
           }
         });
 
         socket.addEventListener("close", () => {
           status.innerText = "Conexión al servidor de señalización cerrada.";
+          console.log("<<< DEBUG LOG >>> WebSocket cerrado.");
           fileInput.disabled = true;
         });
 
         socket.addEventListener("error", (e) => {
           status.innerText = "Error en la conexión WebSocket.";
-          console.error(e);
+          console.error("<<< DEBUG LOG >>> Error en WebSocket:", e);
         });
 
         socket.addEventListener("message", async (event) => {
@@ -360,139 +563,339 @@
             let mensaje;
             try {
               mensaje = JSON.parse(event.data);
+              console.log(
+                "<<< DEBUG LOG >>> Mensaje recibido del servidor (JSON):",
+                mensaje
+              );
             } catch {
-              console.warn("Mensaje recibido no es JSON válido:", event.data);
+              console.warn(
+                "<<< DEBUG LOG >>> Mensaje recibido no es JSON válido:",
+                event.data
+              );
               return;
             }
-
             manejarMensaje(mensaje);
           } else if (event.data instanceof Blob) {
+            console.log(
+              "<<< DEBUG LOG >>> Mensaje recibido del servidor (Blob). Intentando parsear..."
+            );
             try {
               const texto = await event.data.text();
               const mensaje = JSON.parse(texto);
+              console.log("<<< DEBUG LOG >>> Blob parseado a JSON:", mensaje);
               manejarMensaje(mensaje);
             } catch {
-              console.warn("Blob recibido no contiene JSON válido");
+              console.warn(
+                "<<< DEBUG LOG >>> Blob recibido no contiene JSON válido."
+              );
             }
           } else {
-            console.warn("Mensaje WebSocket recibido de tipo no esperado");
+            console.warn(
+              "<<< DEBUG LOG >>> Mensaje WebSocket recibido de tipo no esperado:",
+              typeof event.data
+            );
           }
         });
       }
 
       function enviarSocket(obj) {
-        const mensaje = JSON.stringify(obj);
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(mensaje);
+        let mensajeAEnviar;
+        if (obj.type === "join") {
+          mensajeAEnviar = JSON.stringify(obj);
+          console.log(
+            "<<< DEBUG LOG >>> Preparando envío de mensaje 'join':",
+            obj
+          );
+        } else if (
+          obj.tipo === "oferta" ||
+          obj.tipo === "respuesta" ||
+          obj.tipo === "candidato"
+        ) {
+          // El servidor espera un objeto con { type: "signal", data: ... }
+          mensajeAEnviar = JSON.stringify({ type: "signal", data: obj });
+          console.log(
+            "<<< DEBUG LOG >>> Preparando envío de mensaje 'signal' con datos:",
+            obj
+          );
         } else {
-          mensajePendiente.push(mensaje);
+          mensajeAEnviar = JSON.stringify(obj);
+          console.log(
+            "<<< DEBUG LOG >>> Preparando envío de mensaje desconocido:",
+            obj
+          );
+        }
+
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(mensajeAEnviar);
+          console.log(
+            "<<< DEBUG LOG >>> Mensaje enviado vía WebSocket:",
+            JSON.parse(mensajeAEnviar)
+          );
+        } else {
+          mensajePendiente.push(mensajeAEnviar);
+          console.log(
+            "<<< DEBUG LOG >>> WebSocket no abierto. Mensaje en cola:",
+            JSON.parse(mensajeAEnviar)
+          );
         }
       }
 
       function crearPeer(isOffer) {
+        console.log(
+          "<<< DEBUG LOG >>> Creando RTCPeerConnection (isOffer:",
+          isOffer,
+          ")"
+        );
         peer = new RTCPeerConnection({
           iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
 
         peer.onicecandidate = (event) => {
           if (event.candidate) {
+            console.log(
+              "<<< DEBUG LOG >>> ICE Candidate generado:",
+              event.candidate
+            );
             enviarSocket({
               tipo: "candidato",
               candidato: event.candidate,
               sala: salaId,
             });
+          } else {
+            console.log(
+              "<<< DEBUG LOG >>> ICE Candidate gathering completo (null candidate)."
+            );
           }
+        };
+
+        // <<< DEBUG LOG >>> Añadir logs para los estados de la conexión
+        peer.onconnectionstatechange = () => {
+          console.log(
+            "<<< DEBUG LOG >>> peer.connectionState:",
+            peer.connectionState
+          );
+          status.innerText = `Estado de conexión WebRTC: ${peer.connectionState}`;
+          if (
+            peer.connectionState === "disconnected" ||
+            peer.connectionState === "failed" ||
+            peer.connectionState === "closed"
+          ) {
+            status.innerText = `Conexión WebRTC ${peer.connectionState}.`;
+            fileInput.disabled = true;
+          }
+          if (peer.connectionState === "connected") {
+            status.innerText = "Conexión WebRTC establecida.";
+            // El fileInput se habilita con el mensaje 'ready' del servidor,
+            // no aquí para evitar habilitarlo prematuramente si el canal de datos no está abierto.
+          }
+        };
+
+        peer.oniceconnectionstatechange = () => {
+          console.log(
+            "<<< DEBUG LOG >>> peer.iceConnectionState:",
+            peer.iceConnectionState
+          );
+        };
+
+        peer.onicegatheringstatechange = () => {
+          console.log(
+            "<<< DEBUG LOG >>> peer.iceGatheringState:",
+            peer.iceGatheringState
+          );
         };
 
         if (isOffer) {
           dataChannel = peer.createDataChannel("canalDatos");
+          console.log("<<< DEBUG LOG >>> DataChannel creado para modo 'send'.");
 
           dataChannel.onopen = () => {
             status.innerText =
               "Canal de datos abierto. Listo para enviar archivos.";
-            fileInput.disabled = false;
+            console.log("<<< DEBUG LOG >>> DataChannel 'canalDatos' abierto.");
+            if (enviarArchivoPendiente && archivoParaEnviar) {
+              enviarArchivoPendiente = false;
+              console.log(
+                "<<< DEBUG LOG >>> Iniciando envío de archivo pendiente."
+              );
+              enviarArchivo();
+            }
           };
 
           dataChannel.onclose = () => {
             status.innerText = "Canal de datos cerrado.";
+            console.log("<<< DEBUG LOG >>> DataChannel 'canalDatos' cerrado.");
             fileInput.disabled = true;
           };
 
-          dataChannel.onmessage = (event) => {};
+          dataChannel.onerror = (error) => {
+            console.error("<<< DEBUG LOG >>> Error en DataChannel:", error);
+          };
+
+          dataChannel.onmessage = (event) => {
+            console.log(
+              "<<< DEBUG LOG >>> Mensaje recibido en DataChannel (inesperado en sender):",
+              event.data
+            );
+          };
 
           peer
             .createOffer()
-            .then((oferta) => peer.setLocalDescription(oferta))
+            .then((oferta) => {
+              console.log("<<< DEBUG LOG >>> Oferta SDP creada:", oferta);
+              return peer.setLocalDescription(oferta);
+            })
             .then(() => {
+              console.log(
+                "<<< DEBUG LOG >>> LocalDescription (oferta) establecida."
+              );
               enviarSocket({
                 tipo: "oferta",
                 oferta: peer.localDescription,
                 sala: salaId,
               });
+            })
+            .catch((error) => {
+              console.error(
+                "<<< DEBUG LOG >>> Error al crear/establecer oferta:",
+                error
+              );
             });
         } else {
           peer.ondatachannel = (event) => {
             dataChannel = event.channel;
+            console.log(
+              "<<< DEBUG LOG >>> DataChannel recibido para modo 'receive'."
+            );
 
             dataChannel.onopen = () => {
               status.innerText =
                 "Canal de datos abierto. Listo para recibir archivos.";
-              fileInput.disabled = true;
+              console.log(
+                "<<< DEBUG LOG >>> DataChannel 'canalDatos' abierto (receptor)."
+              );
+              fileInput.disabled = true; // El receptor no envía
             };
 
             dataChannel.onclose = () => {
               status.innerText = "Canal de datos cerrado.";
+              console.log(
+                "<<< DEBUG LOG >>> DataChannel 'canalDatos' cerrado (receptor)."
+              );
               fileInput.disabled = true;
             };
 
+            dataChannel.onerror = (error) => {
+              console.error(
+                "<<< DEBUG LOG >>> Error en DataChannel (receptor):",
+                error
+              );
+            };
+
             dataChannel.onmessage = (event) => {
+              console.log(
+                "<<< DEBUG LOG >>> Chunk de datos recibido en DataChannel."
+              );
               manejarChunk(event.data);
             };
           };
         }
-
-        peer.onconnectionstatechange = () => {
-          if (
-            peer.connectionState === "disconnected" ||
-            peer.connectionState === "failed"
-          ) {
-            status.innerText = "Conexión perdida.";
-            fileInput.disabled = true;
-          }
-          if (peer.connectionState === "closed") {
-            status.innerText = "Conexión cerrada.";
-            fileInput.disabled = true;
-          }
-        };
       }
 
       function manejarMensaje(mensaje) {
-        switch (mensaje.tipo) {
-          case "oferta":
-            if (!peer) {
-              crearPeer(false);
-            }
-            peer
-              .setRemoteDescription(mensaje.oferta)
-              .then(() => peer.createAnswer())
-              .then((respuesta) => peer.setLocalDescription(respuesta))
-              .then(() => {
-                enviarSocket({
-                  tipo: "respuesta",
-                  respuesta: peer.localDescription,
-                  sala: salaId,
+        // <<< DEBUG LOG >>> Logs adicionales y detallados para manejo de mensajes
+        console.log(
+          "<<< DEBUG LOG >>> Manejando mensaje del servidor. Tipo:",
+          mensaje.type,
+          "Contenido:",
+          mensaje
+        );
+        switch (mensaje.type) {
+          case "signal":
+            const data = mensaje.data;
+            console.log(
+              "<<< DEBUG LOG >>> Mensaje 'signal' recibido con datos. Tipo de señal (data.tipo):",
+              data.tipo,
+              "Datos:",
+              data
+            );
+
+            if (data.tipo === "oferta") {
+              console.log(
+                "<<< DEBUG LOG >>> Signal: tipo 'oferta' detectado. Procesando oferta..."
+              );
+              if (!peer) {
+                console.log(
+                  "<<< DEBUG LOG >>> Peer no existe en receptor, creando Peer para responder oferta."
+                );
+                crearPeer(false);
+              }
+              peer
+                .setRemoteDescription(data.oferta)
+                .then(() => {
+                  console.log(
+                    "<<< DEBUG LOG >>> RemoteDescription (oferta) establecida en receptor. Creando respuesta..."
+                  );
+                  return peer.createAnswer();
+                })
+                .then((respuesta) => {
+                  console.log(
+                    "<<< DEBUG LOG >>> Respuesta SDP creada por receptor:",
+                    respuesta
+                  );
+                  return peer.setLocalDescription(respuesta);
+                })
+                .then(() => {
+                  console.log(
+                    "<<< DEBUG LOG >>> LocalDescription (respuesta) establecida en receptor. Enviando respuesta..."
+                  );
+                  enviarSocket({
+                    tipo: "respuesta",
+                    respuesta: peer.localDescription,
+                    sala: salaId,
+                  });
+                })
+                .catch((error) => {
+                  console.error(
+                    "<<< DEBUG LOG >>> ERROR: Fallo al manejar oferta en receptor:",
+                    error
+                  );
                 });
+            } else if (data.tipo === "respuesta") {
+              console.log(
+                "<<< DEBUG LOG >>> Signal: tipo 'respuesta' detectado. Estableciendo RemoteDescription."
+              );
+              peer.setRemoteDescription(data.respuesta).catch((error) => {
+                console.error(
+                  "<<< DEBUG LOG >>> ERROR: Fallo al establecer respuesta remota en emisor:",
+                  error
+                );
               });
-            break;
-
-          case "respuesta":
-            peer.setRemoteDescription(mensaje.respuesta);
-            break;
-
-          case "candidato":
-            if (peer) {
-              peer.addIceCandidate(mensaje.candidato);
+            } else if (data.tipo === "candidato") {
+              console.log(
+                "<<< DEBUG LOG >>> Signal: tipo 'candidato' detectado. Añadiendo ICE Candidate."
+              );
+              if (peer) {
+                peer.addIceCandidate(data.candidato).catch((error) => {
+                  console.error(
+                    "<<< DEBUG LOG >>> ERROR: Fallo al añadir ICE Candidate:",
+                    error
+                  );
+                });
+              } else {
+                console.warn(
+                  "<<< DEBUG LOG >>> Advertencia: No hay peer para añadir ICE Candidate."
+                );
+              }
             }
+            break;
+
+          case "ready":
+            status.innerText =
+              "Conexión WebRTC establecida. Listo para transferencia.";
+            fileInput.disabled = false;
+            console.log(
+              "<<< DEBUG LOG >>> Mensaje 'ready' recibido del servidor. FileInput habilitado."
+            );
             break;
 
           case "cerrar":
@@ -501,24 +904,41 @@
               peer = null;
               status.innerText = "Conexión finalizada.";
               fileInput.disabled = true;
+              console.log(
+                "<<< DEBUG LOG >>> Mensaje 'cerrar' recibido. Conexión WebRTC cerrada."
+              );
             }
             break;
 
-          case "unirse":
-            console.log(`Usuario se unió a la sala: ${mensaje.sala}`);
-            break;
-
           default:
-            console.warn("Mensaje desconocido:", mensaje);
+            console.warn(
+              "<<< DEBUG LOG >>> Mensaje desconocido del servidor:",
+              mensaje
+            );
             break;
         }
       }
 
-      dropZone.addEventListener("click", () => fileInput.click());
+      dropZone.addEventListener("click", () => {
+        if (!fileInput.disabled) {
+          fileInput.click();
+          console.log(
+            "<<< DEBUG LOG >>> DropZone clicado, abriendo selector de archivo."
+          );
+        } else {
+          status.innerText =
+            "Esperando que la conexión esté lista para seleccionar un archivo.";
+          console.log(
+            "<<< DEBUG LOG >>> DropZone clicado, pero fileInput deshabilitado."
+          );
+        }
+      });
 
       dropZone.addEventListener("dragover", (e) => {
         e.preventDefault();
-        dropZone.classList.add("dragover");
+        if (modo === "send" && !fileInput.disabled) {
+          dropZone.classList.add("dragover");
+        }
       });
 
       dropZone.addEventListener("dragleave", () => {
@@ -528,17 +948,29 @@
       dropZone.addEventListener("drop", (e) => {
         e.preventDefault();
         dropZone.classList.remove("dragover");
-        if (modo !== "send") return;
+        if (modo !== "send" || fileInput.disabled) {
+          status.innerText =
+            "La conexión no está lista para enviar un archivo.";
+          console.warn(
+            "<<< DEBUG LOG >>> Archivo arrastrado/soltado, pero no en modo 'send' o input deshabilitado."
+          );
+          return;
+        }
 
         const archivos = e.dataTransfer.files;
         if (archivos.length > 0) {
+          console.log("<<< DEBUG LOG >>> Archivo soltado:", archivos[0].name);
           prepararEnvioArchivo(archivos[0]);
         }
       });
 
       fileInput.addEventListener("change", () => {
-        if (modo !== "send") return;
+        if (modo !== "send" || fileInput.disabled) return;
         if (fileInput.files.length > 0) {
+          console.log(
+            "<<< DEBUG LOG >>> Archivo seleccionado vía input:",
+            fileInput.files[0].name
+          );
           prepararEnvioArchivo(fileInput.files[0]);
         }
       });
@@ -546,20 +978,33 @@
       function prepararEnvioArchivo(archivo) {
         archivoParaEnviar = archivo;
         status.innerText = `Archivo listo para enviar: ${archivo.name} (${archivo.size} bytes)`;
-        enviarArchivo();
+        enviarArchivoPendiente = true;
+        console.log(
+          "<<< DEBUG LOG >>> Archivo preparado para envío. Marcado como pendiente."
+        );
+        enviarArchivo(); // Intenta enviar, si el canal no está abierto, se quedará pendiente
       }
 
       function enviarArchivo() {
         if (!dataChannel || dataChannel.readyState !== "open") {
-          status.innerText = "Canal de datos no está abierto aún.";
-          return;
+          status.innerText = "Canal de datos no está abierto aún. Esperando...";
+          console.log(
+            "<<< DEBUG LOG >>> DataChannel no abierto. Retrasando envío."
+          );
+          return; // Espera a que dataChannel.onopen se active
         }
+
+        // Si llegamos aquí, el dataChannel está abierto
         if (!archivoParaEnviar) {
           status.innerText = "No hay archivo para enviar.";
+          console.warn(
+            "<<< DEBUG LOG >>> No hay archivoParaEnviar para iniciar el envío."
+          );
           return;
         }
 
         status.innerText = `Enviando archivo: ${archivoParaEnviar.name} (${archivoParaEnviar.size} bytes)`;
+        console.log("<<< DEBUG LOG >>> Iniciando envío de archivo real.");
 
         const meta = {
           tipo: "meta",
@@ -567,28 +1012,36 @@
           tamaño: archivoParaEnviar.size,
         };
         dataChannel.send(JSON.stringify(meta));
+        console.log("<<< DEBUG LOG >>> Metadatos del archivo enviados:", meta);
 
         const lector = new FileReader();
         let offset = 0;
 
         lector.onerror = (e) => {
           status.innerText = "Error leyendo archivo.";
-          console.error(e);
+          console.error("<<< DEBUG LOG >>> Error FileReader:", e);
         };
 
         lector.onabort = () => {
           status.innerText = "Lectura de archivo abortada.";
+          console.warn("<<< DEBUG LOG >>> FileReader abortado.");
         };
 
         lector.onload = (e) => {
           dataChannel.send(e.target.result);
           offset += e.target.result.byteLength;
-          status.innerText = `Enviando archivo: ${archivoParaEnviar.name} (${offset} / ${archivoParaEnviar.size} bytes)`;
+          const porcentaje = ((offset / archivoParaEnviar.size) * 100).toFixed(
+            2
+          );
+          status.innerText = `Enviando archivo: ${archivoParaEnviar.name} (${offset} / ${archivoParaEnviar.size} bytes) - ${porcentaje}%`;
 
           if (offset < archivoParaEnviar.size) {
             leerSlice(offset);
           } else {
             status.innerText = `Archivo ${archivoParaEnviar.name} enviado correctamente.`;
+            archivoParaEnviar = null;
+            fileInput.value = "";
+            console.log("<<< DEBUG LOG >>> Envío de archivo completado.");
           }
         };
 
@@ -607,14 +1060,26 @@
               nombreArchivoRecibido = msg.nombre;
               tamañoArchivoEsperado = msg.tamaño;
               archivoRecibidoBuffers = [];
-              status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (${tamañoArchivoEsperado} bytes)`;
+              status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (0 / ${tamañoArchivoEsperado} bytes)`;
+              console.log(
+                "<<< DEBUG LOG >>> Metadatos de archivo recibidos:",
+                msg
+              );
               return;
             }
           } catch {
-            console.warn("Mensaje recibido string no JSON");
+            console.warn(
+              "<<< DEBUG LOG >>> Mensaje de texto no JSON o no metadata:",
+              data
+            );
           }
         } else if (data instanceof ArrayBuffer || data instanceof Blob) {
-          const buffer = data instanceof Blob ? null : data;
+          console.log(
+            "<<< DEBUG LOG >>> Recibiendo chunk de datos:",
+            data.byteLength || data.size,
+            "bytes."
+          );
+
           if (data instanceof Blob) {
             const reader = new FileReader();
             reader.onload = () => {
@@ -623,7 +1088,7 @@
             };
             reader.readAsArrayBuffer(data);
           } else {
-            archivoRecibidoBuffers.push(buffer);
+            archivoRecibidoBuffers.push(data);
             mostrarProgresoRecepcion();
           }
         }
@@ -634,7 +1099,11 @@
           (acum, buf) => acum + buf.byteLength,
           0
         );
-        status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (${tamañoRecibido} / ${tamañoArchivoEsperado} bytes)`;
+        const porcentaje = (
+          (tamañoRecibido / tamañoArchivoEsperado) *
+          100
+        ).toFixed(2);
+        status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (${tamañoRecibido} / ${tamañoArchivoEsperado} bytes) - ${porcentaje}%`;
 
         if (
           tamañoRecibido >= tamañoArchivoEsperado &&
@@ -646,19 +1115,35 @@
           archivoRecibidoBuffers = [];
           tamañoArchivoEsperado = 0;
           nombreArchivoRecibido = "";
+          fileInput.disabled = true;
+          console.log(
+            "<<< DEBUG LOG >>> Recepción de archivo completada. Tamaño final:",
+            tamañoRecibido
+          );
         }
       }
 
       window.addEventListener("load", () => {
+        console.log(
+          "<<< DEBUG LOG >>> Documento cargado. Comprobando hash de URL."
+        );
         if (window.location.hash) {
           const hash = window.location.hash.substring(1);
           if (hash.startsWith("send-")) {
             salaId = hash.replace("send-", "").toUpperCase();
             modo = "send";
+            console.log(
+              "<<< DEBUG LOG >>> Hash detectado: modo 'send', sala:",
+              salaId
+            );
             iniciarTransferencia();
           } else if (hash.startsWith("receive-")) {
             salaId = hash.replace("receive-", "").toUpperCase();
             modo = "receive";
+            console.log(
+              "<<< DEBUG LOG >>> Hash detectado: modo 'receive', sala:",
+              salaId
+            );
             iniciarTransferencia();
           }
         }
