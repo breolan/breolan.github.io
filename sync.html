@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CUDI Cypher - Cifrado Seguro</title>
-    <link rel="stylesheet" href="./css/styles.css" />
     <link
       rel="icon"
       type="image/png"
@@ -18,7 +17,6 @@
         --amarillo: #f9c74f;
         --gris-fondo: #f2f4f8;
       }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -26,7 +24,6 @@
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         scroll-behavior: smooth;
       }
-
       html,
       body {
         height: 100%;
@@ -36,7 +33,6 @@
         display: flex;
         flex-direction: column;
       }
-
       header.site-header {
         background: linear-gradient(to right, var(--azul), var(--celeste));
         color: white;
@@ -46,7 +42,6 @@
         top: 0;
         z-index: 1000;
       }
-
       .header-container {
         display: flex;
         align-items: center;
@@ -54,7 +49,6 @@
         max-width: 1100px;
         margin: 0 auto;
       }
-
       .logo {
         display: flex;
         align-items: center;
@@ -62,29 +56,24 @@
         font-size: 1.5rem;
         font-weight: 700;
       }
-
       .logo img {
         height: 40px;
         width: auto;
       }
-
       nav.navbar {
         display: flex;
         gap: 25px;
         align-items: center;
       }
-
       nav.navbar a {
         color: white;
         text-decoration: none;
         font-weight: 500;
         transition: color 0.3s;
       }
-
       nav.navbar a:hover {
         color: var(--amarillo);
       }
-
       main.container {
         max-width: 700px;
         margin: 40px auto;
@@ -97,7 +86,6 @@
         align-items: center;
         animation: fadeIn 0.5s ease-in-out;
       }
-
       h2.section-title {
         font-size: 28px;
         margin-bottom: 20px;
@@ -105,7 +93,6 @@
         font-weight: 600;
         text-align: center;
       }
-
       .drop-area {
         border: 2px dashed var(--celeste);
         border-radius: 10px;
@@ -118,11 +105,9 @@
         margin-bottom: 20px;
         transition: background-color 0.3s ease;
       }
-
       .drop-area.dragover {
         background-color: #e0f4ff;
       }
-
       input[type="password"],
       #codigoSala {
         width: 100%;
@@ -133,7 +118,6 @@
         margin-bottom: 20px;
         outline: none;
       }
-
       #fileNameInput {
         width: 100%;
         padding: 10px 15px;
@@ -144,14 +128,12 @@
         outline: none;
         display: none;
       }
-
       .buttons {
         display: flex;
         width: 100%;
         gap: 15px;
         margin-top: 10px;
       }
-
       button {
         flex: 1;
         padding: 12px;
@@ -163,30 +145,33 @@
         color: white;
         transition: background-color 0.3s ease;
       }
-
       button:hover {
         background-color: var(--azul-oscuro);
       }
-
-      #status {
+      #salaStatus {
         margin-top: 25px;
+        color: var(--azul);
+        font-weight: 700;
+        font-size: 1.2rem;
+        text-align: center;
+        word-break: break-word;
+      }
+      #status {
+        margin-top: 5px;
         color: var(--azul);
         font-weight: bold;
         min-height: 1.5em;
         text-align: center;
         word-break: break-word;
       }
-
       #qrContainer {
         margin-top: 20px;
         text-align: center;
       }
-
       #qrContainer canvas {
         border-radius: 12px;
         box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
       }
-
       footer {
         background: var(--azul-oscuro);
         color: white;
@@ -194,7 +179,6 @@
         padding: 20px;
         margin-top: auto;
       }
-
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -252,6 +236,8 @@
           <p>Haz clic o arrastra un archivo aquí para compartir</p>
           <input type="file" id="fileInput" hidden />
         </div>
+
+        <div id="salaStatus">Sala: —</div>
         <div id="status">Conectando…</div>
 
         <div id="qrContainer"></div>
@@ -269,12 +255,22 @@
       const dropZone = document.getElementById("dropZone");
       const fileInput = document.getElementById("fileInput");
       const status = document.getElementById("status");
+      const salaStatus = document.getElementById("salaStatus");
       const qrContainer = document.getElementById("qrContainer");
 
       let socket, peer, dataChannel;
       let salaId = null;
       let modo = null;
-      let qr;
+
+      let mensajePendiente = [];
+
+      const CHUNK_SIZE = 16 * 1024;
+      let archivoParaEnviar = null;
+      let archivoRecibidoBuffers = [];
+      let tamañoArchivoEsperado = 0;
+      let nombreArchivoRecibido = "";
+
+      fileInput.disabled = true;
 
       function generarCodigo() {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -282,6 +278,7 @@
 
       function crearSala() {
         salaId = generarCodigo();
+        modo = "send";
         window.location.hash = `send-${salaId}`;
         iniciarTransferencia();
       }
@@ -294,6 +291,7 @@
         const codigo = document.getElementById("codigoSala").value.trim();
         if (codigo) {
           salaId = codigo.toUpperCase();
+          modo = "receive";
           window.location.hash = `receive-${salaId}`;
           iniciarTransferencia();
         }
@@ -303,183 +301,368 @@
         document.getElementById("menu").style.display = "none";
         document.getElementById("zonaTransferencia").style.display = "block";
 
-        const hash = window.location.hash.replace("#", "");
-        const [tipo, id] = hash.split("-");
-        modo = tipo;
-        salaId = id;
-
-        status.innerText = `Conectando a sala: ${salaId}`;
+        salaStatus.textContent = `Sala: ${salaId}`;
+        qrContainer.innerHTML = "";
 
         if (modo === "send") {
-          mostrarQR();
-        } else {
-          qrContainer.innerHTML = "";
+          const urlParaRecibir = `${window.location.origin}${window.location.pathname}#receive-${salaId}`;
+          const qr = new QRious({
+            element: document.createElement("canvas"),
+            size: 220,
+            value: urlParaRecibir,
+          });
+          qrContainer.appendChild(qr.element);
+
+          status.innerText = "Sala creada. Esperando conexión...";
+        } else if (modo === "receive") {
+          status.innerText = "Uniéndose a la sala, esperando conexión...";
         }
 
         iniciarConexion();
-      }
 
-      function mostrarQR() {
-        const urlSala = `${window.location.origin}${window.location.pathname}#receive-${salaId}`;
-        qrContainer.innerHTML = "";
-        qr = new QRious({
-          element: document.createElement("canvas"),
-          value: urlSala,
-          size: 180,
-        });
-        qrContainer.appendChild(qr.element);
-        const info = document.createElement("p");
-        info.innerText = "Escanea este código QR para unirte a la sala";
-        qrContainer.appendChild(info);
+        fileInput.disabled = true;
       }
-
-      dropZone.addEventListener("click", () => fileInput.click());
-      dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropZone.classList.add("dragover");
-      });
-      dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("dragover");
-      });
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-        if (e.dataTransfer.files.length > 0) {
-          fileInput.files = e.dataTransfer.files;
-          fileInput.dispatchEvent(new Event("change"));
-        }
-      });
 
       function iniciarConexion() {
         socket = new WebSocket("wss://cudi-sync-signalin.onrender.com");
+
+        socket.addEventListener("open", () => {
+          status.innerText = "Conectado al servidor de señalización.";
+
+          while (mensajePendiente.length > 0) {
+            socket.send(mensajePendiente.shift());
+          }
+
+          enviarSocket({
+            tipo: "unirse",
+            sala: salaId,
+          });
+
+          if (modo === "send") {
+            crearPeer(true);
+          } else {
+            crearPeer(false);
+          }
+        });
+
+        socket.addEventListener("close", () => {
+          status.innerText = "Conexión al servidor de señalización cerrada.";
+          fileInput.disabled = true;
+        });
+
+        socket.addEventListener("error", (e) => {
+          status.innerText = "Error en la conexión WebSocket.";
+          console.error(e);
+        });
+
+        socket.addEventListener("message", async (event) => {
+          if (typeof event.data === "string") {
+            let mensaje;
+            try {
+              mensaje = JSON.parse(event.data);
+            } catch {
+              console.warn("Mensaje recibido no es JSON válido:", event.data);
+              return;
+            }
+
+            manejarMensaje(mensaje);
+          } else if (event.data instanceof Blob) {
+            try {
+              const texto = await event.data.text();
+              const mensaje = JSON.parse(texto);
+              manejarMensaje(mensaje);
+            } catch {
+              console.warn("Blob recibido no contiene JSON válido");
+            }
+          } else {
+            console.warn("Mensaje WebSocket recibido de tipo no esperado");
+          }
+        });
+      }
+
+      function enviarSocket(obj) {
+        const mensaje = JSON.stringify(obj);
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(mensaje);
+        } else {
+          mensajePendiente.push(mensaje);
+        }
+      }
+
+      function crearPeer(isOffer) {
         peer = new RTCPeerConnection({
           iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
 
-        socket.onopen = () => {
-          socket.send(JSON.stringify({ type: "join", room: salaId }));
-          if (modo === "send") {
-            dataChannel = peer.createDataChannel("cudi");
-            setupSender();
-            peer
-              .createOffer()
-              .then((offer) => peer.setLocalDescription(offer))
-              .then(() => {
-                socket.send(
-                  JSON.stringify({
-                    type: "signal",
-                    data: {
-                      signalType: "offer",
-                      signal: peer.localDescription,
-                    },
-                  })
-                );
+        peer.onicecandidate = (event) => {
+          if (event.candidate) {
+            enviarSocket({
+              tipo: "candidato",
+              candidato: event.candidate,
+              sala: salaId,
+            });
+          }
+        };
+
+        if (isOffer) {
+          dataChannel = peer.createDataChannel("canalDatos");
+
+          dataChannel.onopen = () => {
+            status.innerText =
+              "Canal de datos abierto. Listo para enviar archivos.";
+            fileInput.disabled = false;
+          };
+
+          dataChannel.onclose = () => {
+            status.innerText = "Canal de datos cerrado.";
+            fileInput.disabled = true;
+          };
+
+          dataChannel.onmessage = (event) => {};
+
+          peer
+            .createOffer()
+            .then((oferta) => peer.setLocalDescription(oferta))
+            .then(() => {
+              enviarSocket({
+                tipo: "oferta",
+                oferta: peer.localDescription,
+                sala: salaId,
               });
-          }
-        };
+            });
+        } else {
+          peer.ondatachannel = (event) => {
+            dataChannel = event.channel;
 
-        socket.onmessage = async (event) => {
-          const msg = JSON.parse(event.data);
-          if (msg.room && msg.room !== salaId) return;
+            dataChannel.onopen = () => {
+              status.innerText =
+                "Canal de datos abierto. Listo para recibir archivos.";
+              fileInput.disabled = true;
+            };
 
-          if (msg.type === "signal") {
-            const { signalType, signal } = msg.data;
+            dataChannel.onclose = () => {
+              status.innerText = "Canal de datos cerrado.";
+              fileInput.disabled = true;
+            };
 
-            if (signalType === "offer" && modo === "receive") {
-              await peer.setRemoteDescription(
-                new RTCSessionDescription(signal)
-              );
-              const answer = await peer.createAnswer();
-              await peer.setLocalDescription(answer);
-              socket.send(
-                JSON.stringify({
-                  type: "signal",
-                  data: {
-                    signalType: "answer",
-                    signal: peer.localDescription,
-                  },
-                  room: salaId,
-                })
-              );
-            } else if (signalType === "answer" && modo === "send") {
-              await peer.setRemoteDescription(
-                new RTCSessionDescription(signal)
-              );
-            } else if (signalType === "candidate") {
-              await peer.addIceCandidate(new RTCIceCandidate(signal));
-            }
-          }
-        };
-
-        peer.onicecandidate = (e) => {
-          if (e.candidate) {
-            socket.send(
-              JSON.stringify({
-                type: "signal",
-                data: {
-                  signalType: "candidate",
-                  signal: e.candidate,
-                },
-                room: salaId,
-              })
-            );
-          }
-        };
-
-        peer.ondatachannel = (e) => {
-          dataChannel = e.channel;
-          setupReceiver();
-        };
-      }
-
-      function setupSender() {
-        dataChannel.onopen = () => {
-          status.innerText = `Conectado. Tu sala es: ${salaId}`;
-        };
-        dataChannel.onclose = () => {
-          status.innerText = "Conexión cerrada.";
-        };
-      }
-
-      function setupReceiver() {
-        dataChannel.onmessage = (e) => {
-          const blob = new Blob([e.data]);
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "archivo_recibido";
-          a.textContent = "⬇ Descargar archivo recibido";
-          status.innerHTML = "";
-          status.appendChild(a);
-        };
-        dataChannel.onopen = () => {
-          status.innerText = `Conectado a la sala: ${salaId}`;
-        };
-        dataChannel.onclose = () => {
-          status.innerText = "Conexión cerrada.";
-        };
-      }
-
-      fileInput.addEventListener("change", () => {
-        if (!dataChannel || dataChannel.readyState !== "open") {
-          alert("No estás conectado aún.");
-          return;
+            dataChannel.onmessage = (event) => {
+              manejarChunk(event.data);
+            };
+          };
         }
-        const file = fileInput.files[0];
-        if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          const buffer = reader.result;
-          dataChannel.send(buffer);
-          status.innerText = `Archivo enviado: ${file.name}`;
+        peer.onconnectionstatechange = () => {
+          if (
+            peer.connectionState === "disconnected" ||
+            peer.connectionState === "failed"
+          ) {
+            status.innerText = "Conexión perdida.";
+            fileInput.disabled = true;
+          }
+          if (peer.connectionState === "closed") {
+            status.innerText = "Conexión cerrada.";
+            fileInput.disabled = true;
+          }
         };
-        reader.readAsArrayBuffer(file);
+      }
+
+      function manejarMensaje(mensaje) {
+        switch (mensaje.tipo) {
+          case "oferta":
+            if (!peer) {
+              crearPeer(false);
+            }
+            peer
+              .setRemoteDescription(mensaje.oferta)
+              .then(() => peer.createAnswer())
+              .then((respuesta) => peer.setLocalDescription(respuesta))
+              .then(() => {
+                enviarSocket({
+                  tipo: "respuesta",
+                  respuesta: peer.localDescription,
+                  sala: salaId,
+                });
+              });
+            break;
+
+          case "respuesta":
+            peer.setRemoteDescription(mensaje.respuesta);
+            break;
+
+          case "candidato":
+            if (peer) {
+              peer.addIceCandidate(mensaje.candidato);
+            }
+            break;
+
+          case "cerrar":
+            if (peer) {
+              peer.close();
+              peer = null;
+              status.innerText = "Conexión finalizada.";
+              fileInput.disabled = true;
+            }
+            break;
+
+          case "unirse":
+            console.log(`Usuario se unió a la sala: ${mensaje.sala}`);
+            break;
+
+          default:
+            console.warn("Mensaje desconocido:", mensaje);
+            break;
+        }
+      }
+
+      dropZone.addEventListener("click", () => fileInput.click());
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
       });
 
-      if (window.location.hash) {
-        iniciarTransferencia();
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        if (modo !== "send") return;
+
+        const archivos = e.dataTransfer.files;
+        if (archivos.length > 0) {
+          prepararEnvioArchivo(archivos[0]);
+        }
+      });
+
+      fileInput.addEventListener("change", () => {
+        if (modo !== "send") return;
+        if (fileInput.files.length > 0) {
+          prepararEnvioArchivo(fileInput.files[0]);
+        }
+      });
+
+      function prepararEnvioArchivo(archivo) {
+        archivoParaEnviar = archivo;
+        status.innerText = `Archivo listo para enviar: ${archivo.name} (${archivo.size} bytes)`;
+        enviarArchivo();
       }
+
+      function enviarArchivo() {
+        if (!dataChannel || dataChannel.readyState !== "open") {
+          status.innerText = "Canal de datos no está abierto aún.";
+          return;
+        }
+        if (!archivoParaEnviar) {
+          status.innerText = "No hay archivo para enviar.";
+          return;
+        }
+
+        status.innerText = `Enviando archivo: ${archivoParaEnviar.name} (${archivoParaEnviar.size} bytes)`;
+
+        const meta = {
+          tipo: "meta",
+          nombre: archivoParaEnviar.name,
+          tamaño: archivoParaEnviar.size,
+        };
+        dataChannel.send(JSON.stringify(meta));
+
+        const lector = new FileReader();
+        let offset = 0;
+
+        lector.onerror = (e) => {
+          status.innerText = "Error leyendo archivo.";
+          console.error(e);
+        };
+
+        lector.onabort = () => {
+          status.innerText = "Lectura de archivo abortada.";
+        };
+
+        lector.onload = (e) => {
+          dataChannel.send(e.target.result);
+          offset += e.target.result.byteLength;
+          status.innerText = `Enviando archivo: ${archivoParaEnviar.name} (${offset} / ${archivoParaEnviar.size} bytes)`;
+
+          if (offset < archivoParaEnviar.size) {
+            leerSlice(offset);
+          } else {
+            status.innerText = `Archivo ${archivoParaEnviar.name} enviado correctamente.`;
+          }
+        };
+
+        function leerSlice(desde) {
+          const slice = archivoParaEnviar.slice(desde, desde + CHUNK_SIZE);
+          lector.readAsArrayBuffer(slice);
+        }
+
+        leerSlice(0);
+      }
+      function manejarChunk(data) {
+        if (typeof data === "string") {
+          try {
+            const msg = JSON.parse(data);
+            if (msg.tipo === "meta") {
+              nombreArchivoRecibido = msg.nombre;
+              tamañoArchivoEsperado = msg.tamaño;
+              archivoRecibidoBuffers = [];
+              status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (${tamañoArchivoEsperado} bytes)`;
+              return;
+            }
+          } catch {
+            console.warn("Mensaje recibido string no JSON");
+          }
+        } else if (data instanceof ArrayBuffer || data instanceof Blob) {
+          const buffer = data instanceof Blob ? null : data;
+          if (data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              archivoRecibidoBuffers.push(reader.result);
+              mostrarProgresoRecepcion();
+            };
+            reader.readAsArrayBuffer(data);
+          } else {
+            archivoRecibidoBuffers.push(buffer);
+            mostrarProgresoRecepcion();
+          }
+        }
+      }
+
+      function mostrarProgresoRecepcion() {
+        let tamañoRecibido = archivoRecibidoBuffers.reduce(
+          (acum, buf) => acum + buf.byteLength,
+          0
+        );
+        status.innerText = `Recibiendo archivo: ${nombreArchivoRecibido} (${tamañoRecibido} / ${tamañoArchivoEsperado} bytes)`;
+
+        if (
+          tamañoRecibido >= tamañoArchivoEsperado &&
+          tamañoArchivoEsperado > 0
+        ) {
+          const archivoBlob = new Blob(archivoRecibidoBuffers);
+          const urlDescarga = URL.createObjectURL(archivoBlob);
+          status.innerHTML = `Archivo recibido: <a href="${urlDescarga}" download="${nombreArchivoRecibido}">Haz clic aquí para descargar ${nombreArchivoRecibido}</a>`;
+          archivoRecibidoBuffers = [];
+          tamañoArchivoEsperado = 0;
+          nombreArchivoRecibido = "";
+        }
+      }
+
+      window.addEventListener("load", () => {
+        if (window.location.hash) {
+          const hash = window.location.hash.substring(1);
+          if (hash.startsWith("send-")) {
+            salaId = hash.replace("send-", "").toUpperCase();
+            modo = "send";
+            iniciarTransferencia();
+          } else if (hash.startsWith("receive-")) {
+            salaId = hash.replace("receive-", "").toUpperCase();
+            modo = "receive";
+            iniciarTransferencia();
+          }
+        }
+      });
     </script>
   </body>
 </html>
