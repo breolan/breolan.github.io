@@ -5,6 +5,7 @@
   --amarillo: #f9c74f;
   --gris-fondo: #f2f4f8;
 }
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -12,6 +13,7 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   scroll-behavior: smooth;
 }
+
 html,
 body {
   height: 100%;
@@ -20,7 +22,10 @@ body {
   line-height: 1.6;
   display: flex;
   flex-direction: column;
+  scroll-padding-bottom: 250px;
+  overflow-y: auto;
 }
+
 header.site-header {
   background: linear-gradient(to right, var(--azul), var(--celeste));
   color: white;
@@ -30,6 +35,7 @@ header.site-header {
   top: 0;
   z-index: 1000;
 }
+
 .header-container {
   display: flex;
   justify-content: space-between;
@@ -38,6 +44,7 @@ header.site-header {
   margin: 0 auto;
   width: 100%;
 }
+
 .logo {
   display: flex;
   align-items: center;
@@ -45,15 +52,18 @@ header.site-header {
   font-size: 1.5rem;
   font-weight: 700;
 }
+
 .logo img {
   height: 40px;
   width: auto;
 }
+
 nav.navbar {
   display: flex;
   gap: 25px;
   align-items: center;
 }
+
 nav.navbar a {
   color: white;
   text-decoration: none;
@@ -61,9 +71,11 @@ nav.navbar a {
   transition: color 0.3s;
   white-space: nowrap;
 }
+
 nav.navbar a:hover {
   color: var(--amarillo);
 }
+
 .menu-toggle {
   display: none;
   flex-direction: column;
@@ -73,6 +85,7 @@ nav.navbar a:hover {
   cursor: pointer;
   z-index: 1001;
 }
+
 .menu-toggle span {
   display: block;
   width: 100%;
@@ -80,15 +93,19 @@ nav.navbar a:hover {
   background-color: white;
   transition: all 0.3s ease-in-out;
 }
+
 .menu-toggle.active span:nth-child(1) {
   transform: translateY(9px) rotate(45deg);
 }
+
 .menu-toggle.active span:nth-child(2) {
   opacity: 0;
 }
+
 .menu-toggle.active span:nth-child(3) {
   transform: translateY(-9px) rotate(-45deg);
 }
+
 nav.navbar.show {
   display: flex;
 }
@@ -106,6 +123,7 @@ main.container {
   animation: fadeIn 0.5s ease-in-out;
   width: calc(100% - 40px);
 }
+
 h2.section-title {
   font-size: 28px;
   margin-bottom: 20px;
@@ -113,6 +131,7 @@ h2.section-title {
   font-weight: 600;
   text-align: center;
 }
+
 .drop-area {
   border: 2px dashed var(--celeste);
   border-radius: 10px;
@@ -125,9 +144,11 @@ h2.section-title {
   margin-bottom: 20px;
   transition: background-color 0.3s ease;
 }
+
 .drop-area.dragover {
   background-color: #e0f4ff;
 }
+
 input[type="password"],
 #codigoSala {
   width: 100%;
@@ -138,6 +159,7 @@ input[type="password"],
   margin-bottom: 20px;
   outline: none;
 }
+
 #fileNameInput {
   width: 100%;
   padding: 10px 15px;
@@ -148,6 +170,7 @@ input[type="password"],
   outline: none;
   display: none;
 }
+
 .buttons {
   display: flex;
   width: 100%;
@@ -155,6 +178,7 @@ input[type="password"],
   margin-top: 10px;
   flex-wrap: wrap;
 }
+
 .buttons button {
   flex: 1;
   padding: 12px;
@@ -167,9 +191,11 @@ input[type="password"],
   transition: background-color 0.3s ease;
   min-width: 120px;
 }
+
 button:hover {
   background-color: var(--azul-oscuro);
 }
+
 #salaStatus {
   margin-top: 25px;
   color: var(--azul);
@@ -178,6 +204,7 @@ button:hover {
   text-align: center;
   word-break: break-word;
 }
+
 #status {
   margin-top: 5px;
   color: var(--azul);
@@ -186,16 +213,19 @@ button:hover {
   text-align: center;
   word-break: break-word;
 }
+
 #qrContainer {
   margin-top: 20px;
   text-align: center;
 }
+
 #qrContainer canvas {
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
   max-width: 100%;
   height: auto;
 }
+
 footer {
   background: var(--azul-oscuro);
   color: white;
@@ -204,6 +234,7 @@ footer {
   margin-top: auto;
   width: 100%;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -250,6 +281,7 @@ footer {
   margin-left: auto;
   margin-right: auto;
 }
+
 #unirseBtn:hover {
   background-color: var(--azul-oscuro);
 }
