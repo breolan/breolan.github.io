@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CUDI - Verificador de Seguridad de Contraseñas</title>
+    <title>CUDI - Verificador de Contraseñas</title>
     <link
       rel="icon"
       type="image/png"
       href="./icons/logo-removebg-preview.png"
     />
-    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/verificador.css" />
     <meta
       name="description"
-      content="Verificador de seguridad de contraseñas de CUDI"
+      content="Herramientas de CUDI: Verificador de seguridad y de filtraciones de contraseñas en un solo lugar."
     />
     <meta name="author" content="CUDI" />
   </head>
@@ -32,14 +32,13 @@
             <ul class="submenu">
               <li><a href="./genrador.html">Generador de contraseñas</a></li>
               <li>
-                <a href="./verificador.html">Verificador de contraseñas</a>
+                <a href="#password-checker">Verificador de contraseñas</a>
               </li>
               <li><a href="#">Verificador de enlaces</a></li>
               <li><a href="#">Golfinho</a></li>
               <li><a href="#">Detector de phishing</a></li>
             </ul>
           </div>
-
           <a href="#test">Autoevaluación</a>
           <a
             href="https://mail.google.com/mail/?view=cm&fs=1&to=breolanapp@gmail.com&su=Participar%20como%20colaborador"
@@ -59,23 +58,35 @@
       </div>
     </header>
 
-    <div class="container">
-      <h2 class="section-title">🔐 Verificador de Seguridad de Contraseñas</h2>
+    <main class="container">
+      <section id="password-checker">
+        <h2 class="section-title">Verificador de Contraseñas</h2>
+        <p>
+          Introduce tu contraseña para verificar su seguridad y si ha sido
+          filtrada.
+        </p>
 
-      <label>
-        <input
-          type="password"
-          id="password"
-          placeholder="Escribe tu contraseña..."
-          oninput="checkPasswordStrength()"
-        />
-      </label>
+        <label>
+          <input
+            type="password"
+            id="password-input"
+            placeholder="Escribe tu contraseña..."
+            oninput="checkAllPasswordMetrics()"
+          />
+        </label>
 
-      <div class="label" id="strength-text">Nivel de seguridad:</div>
-      <div class="strength" id="strength-bar"></div>
+        <div class="label" id="strength-text">Nivel de seguridad:</div>
+        <div class="strength" id="strength-bar"></div>
 
-      <div class="label" id="crack-time">Tiempo estimado para adivinarla:</div>
-    </div>
+        <div class="label" id="crack-time">
+          Tiempo estimado para adivinarla:
+        </div>
+
+        <div class="result-box" id="breach-result" style="margin-top: 20px">
+          Estado de filtración:
+        </div>
+      </section>
+    </main>
 
     <footer>
       <p>
@@ -84,14 +95,26 @@
     </footer>
 
     <script>
-      function checkPasswordStrength() {
-        const password = document.getElementById("password").value;
-        const strengthText = document.getElementById("strength-text");
-        const strengthBar = document.getElementById("strength-bar");
-        const crackTime = document.getElementById("crack-time");
+      document.getElementById("menu-toggle").addEventListener("click", () => {
+        document.getElementById("navbar").classList.toggle("show");
+      });
+
+      async function checkAllPasswordMetrics() {
+        const password = document.getElementById("password-input").value;
+        if (!password) {
+          document.getElementById("strength-text").innerText =
+            "Nivel de seguridad:";
+          document.getElementById("strength-bar").style.width = "0%";
+          document.getElementById("strength-bar").style.backgroundColor = "";
+          document.getElementById("crack-time").innerText =
+            "Tiempo estimado para adivinarla:";
+          document.getElementById("breach-result").innerText =
+            "Estado de filtración:";
+          document.getElementById("breach-result").className = "result-box";
+          return;
+        }
 
         let strength = 0;
-
         if (password.length >= 8) strength++;
         if (/[A-Z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
@@ -115,18 +138,59 @@
             break;
         }
 
-        strengthText.innerText = `Nivel de seguridad: ${text}`;
-        strengthBar.style.backgroundColor = color;
-        strengthBar.style.width = `${(strength / 4) * 100}%`;
+        document.getElementById(
+          "strength-text"
+        ).innerText = `Nivel de seguridad: ${text}`;
+        document.getElementById("strength-bar").style.backgroundColor = color;
+        document.getElementById("strength-bar").style.width = `${
+          (strength / 4) * 100
+        }%`;
 
         const chars = new Set(password).size;
         const entropy = password.length * Math.log2(chars || 1);
         const guesses = Math.pow(2, entropy);
         const guessesPerSecond = 1e9;
         const seconds = guesses / guessesPerSecond;
+        document.getElementById(
+          "crack-time"
+        ).innerText = `Tiempo estimado para adivinarla: ${formatTime(seconds)}`;
 
-        const timeStr = formatTime(seconds);
-        crackTime.innerText = `Tiempo estimado para adivinarla: ${timeStr}`;
+        const breachResultElement = document.getElementById("breach-result");
+        breachResultElement.innerText = "Estado de filtración: Comprobando...";
+        breachResultElement.className = "result-box";
+
+        try {
+          const hash = await sha1(password);
+          const prefix = hash.slice(0, 5);
+          const suffix = hash.slice(5);
+
+          const res = await fetch(
+            `https://api.pwnedpasswords.com/range/${prefix}`
+          );
+          if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+          }
+          const textBreach = await res.text();
+
+          const found = textBreach
+            .split("\n")
+            .some((line) => line.split(":")[0] === suffix);
+
+          if (found) {
+            breachResultElement.innerText =
+              "⚠️ Esta contraseña ha aparecido en filtraciones de datos. ¡Cámbiala!";
+            breachResultElement.className = "result-box result-bad";
+          } else {
+            breachResultElement.innerText =
+              "✅ Esta contraseña NO ha sido encontrada en filtraciones conocidas.";
+            breachResultElement.className = "result-box result-ok";
+          }
+        } catch (error) {
+          console.error("Error al verificar filtraciones:", error);
+          breachResultElement.innerText =
+            "Error al verificar filtraciones. Inténtalo de nuevo.";
+          breachResultElement.className = "result-box result-bad";
+        }
       }
 
       function formatTime(seconds) {
@@ -142,9 +206,14 @@
         return "más de 1000 años";
       }
 
-      document.getElementById("menu-toggle").addEventListener("click", () => {
-        document.getElementById("navbar").classList.toggle("show");
-      });
+      async function sha1(str) {
+        const buffer = new TextEncoder("utf-8").encode(str);
+        const hashBuffer = await crypto.subtle.digest("SHA-1", buffer);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("")
+          .toUpperCase();
+      }
     </script>
   </body>
 </html>

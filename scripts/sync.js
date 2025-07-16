@@ -196,7 +196,6 @@ function crearPeer(isOffer) {
     }
     if (peer.connectionState === "connected") {
       status.innerText = "Conexión WebRTC establecida.";
-      // fileInput y chatInput se habilitan en dataChannel.onopen para asegurar que el canal de datos esté listo
     }
   };
 
@@ -209,9 +208,9 @@ function crearPeer(isOffer) {
     dataChannel.onopen = () => {
       status.innerText =
         "Canal de datos abierto. Listo para enviar archivos y chatear.";
-      fileInput.disabled = false; // Habilitar fileInput para enviar
-      chatInput.disabled = false; // Habilitar chatInput
-      sendChatBtn.disabled = false; // Habilitar botón de chat
+      fileInput.disabled = false;
+      chatInput.disabled = false;
+      sendChatBtn.disabled = false;
 
       if (enviarArchivoPendiente && archivoParaEnviar) {
         enviarArchivoPendiente = false;
@@ -252,9 +251,9 @@ function crearPeer(isOffer) {
       dataChannel.onopen = () => {
         status.innerText =
           "Canal de datos abierto. Listo para recibir archivos y chatear.";
-        fileInput.disabled = true; // El receptor no envía archivos por defecto
-        chatInput.disabled = false; // Habilitar chatInput para chatear
-        sendChatBtn.disabled = false; // Habilitar botón de chat
+        fileInput.disabled = true;
+        chatInput.disabled = false;
+        sendChatBtn.disabled = false;
       };
 
       dataChannel.onclose = () => {
@@ -310,7 +309,6 @@ function manejarMensaje(mensaje) {
     case "ready":
       status.innerText =
         "Conexión WebRTC establecida. Listo para transferencia.";
-      // Los inputs se habilitan cuando el DataChannel se abre
       break;
 
     case "cerrar":
@@ -484,7 +482,6 @@ function mostrarProgresoRecepcion() {
   }
 }
 
-// NUEVO: Lógica del chat
 sendChatBtn.addEventListener("click", () => {
   const message = chatInput.value.trim();
   if (message && dataChannel && dataChannel.readyState === "open") {
@@ -496,7 +493,7 @@ sendChatBtn.addEventListener("click", () => {
 
 chatInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    event.preventDefault(); // Evita salto de línea en input si es textarea
+    event.preventDefault();
     sendChatBtn.click();
   }
 });
@@ -504,7 +501,7 @@ chatInput.addEventListener("keydown", (event) => {
 function displayChatMessage(message, senderType) {
   const p = document.createElement("p");
   p.textContent = message;
-  p.classList.add(senderType); // Añade clase 'sent' o 'received' para CSS
+  p.classList.add(senderType);
   messagesDisplay.appendChild(p);
   messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
 }
